@@ -4,17 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#232F66">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Amplop">
-<link rel="manifest" href="manifest.json">
+<meta name="description" content="Amplop — atur uang bulananmu dengan sistem amplop. Bagi ke amplop di awal bulan, belanja dari amplopnya, dan tahu persis berapa yang aman dipakai tiap hari.">
+<title>Amplop — Atur Uang Sistem Amplop</title>
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" href="icon-192.png">
-<title>Amplop — Atur Uang Sistem Amplop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --bg:#F5F3EE; --card:#FFFFFF; --ink:#1C2740; --muted:#67708A;
@@ -26,1052 +22,224 @@
   --r:16px; --shadow:0 1px 3px rgba(28,39,64,.07), 0 8px 22px rgba(28,39,64,.05);
 }
 *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
 body{
   font-family:'Inter',system-ui,-apple-system,sans-serif;
-  background:var(--bg); color:var(--ink); font-size:15px; line-height:1.5;
-  padding-bottom:calc(78px + env(safe-area-inset-bottom));
+  background:var(--bg); color:var(--ink); font-size:15px; line-height:1.55;
 }
 h1,h2,h3,.disp{font-family:'Bricolage Grotesque','Inter',sans-serif; letter-spacing:-.02em}
-.num{font-variant-numeric:tabular-nums; letter-spacing:-.01em}
+a{color:inherit}
+.wrap{max-width:1080px; margin:0 auto; padding:0 20px}
 
-header.app{
-  position:sticky; top:0; z-index:20; background:var(--deep); color:#fff;
-  padding:calc(12px + env(safe-area-inset-top)) 18px 12px;
-  display:flex; align-items:center; justify-content:space-between;
+/* ---- header ---- */
+header.site{
+  position:sticky; top:0; z-index:20; background:rgba(245,243,238,.85); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
 }
-header.app h1{font-size:19px; font-weight:800}
-header.app h1 em{font-style:normal; color:var(--kraft)}
-.gear{background:rgba(255,255,255,.13); border:none; color:#fff; width:36px; height:36px;
-  border-radius:50%; font-size:16px; cursor:pointer}
-main{max-width:560px; margin:0 auto; padding:16px 16px 24px}
-.page{display:none}
-.page.active{display:block; animation:fade .18s ease}
-@keyframes fade{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
-
-.monthbar{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px}
-.monthbar .mv{font-family:'Bricolage Grotesque'; font-weight:800; font-size:16px}
-.monthbar button{width:38px; height:38px; border-radius:12px; border:1px solid var(--line);
-  background:var(--card); font-size:16px; cursor:pointer; color:var(--ink)}
-
-/* hero */
-.hero{background:linear-gradient(150deg,var(--deep) 0%,var(--primary) 100%); color:#fff;
-  border-radius:20px; padding:20px; box-shadow:var(--shadow); margin-bottom:14px; position:relative; overflow:hidden}
-.hero::after{content:''; position:absolute; top:0; left:0; right:0; height:44px;
-  background:linear-gradient(150deg,rgba(255,255,255,.10),transparent);
-  clip-path:polygon(0 0,100% 0,50% 100%); pointer-events:none}
-.hero .label{font-size:12px; font-weight:600; color:#B9C4EA; text-transform:uppercase; letter-spacing:.08em}
-.hero .big{font-family:'Bricolage Grotesque'; font-size:34px; font-weight:800; margin:2px 0 10px}
-.hero .chips{display:flex; gap:8px; flex-wrap:wrap}
-.chip{background:rgba(255,255,255,.14); border-radius:999px; padding:4px 12px; font-size:12px; font-weight:600}
-.chip.k{background:var(--kraft); color:#fff}
-
-.grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px}
-.stat{background:var(--card); border-radius:var(--r); padding:14px; box-shadow:var(--shadow)}
-.stat .k{font-size:12px; color:var(--muted); font-weight:600}
-.stat .v{font-family:'Bricolage Grotesque'; font-size:19px; font-weight:800; margin-top:2px}
-.card{background:var(--card); border-radius:var(--r); padding:16px; box-shadow:var(--shadow); margin-bottom:14px}
-.card h2{font-size:15px; font-weight:800; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center}
-.card h2 small{font-family:'Inter'; font-weight:600; color:var(--muted); font-size:12px}
-
-/* ===== signature: envelope cards ===== */
-.env-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-.env{position:relative; background:var(--card); border:1px solid var(--line); border-radius:14px;
-  padding:30px 13px 12px; cursor:pointer; overflow:hidden}
-.env .flap{position:absolute; top:0; left:0; right:0; height:22px; background:var(--paper)}
-.env .flap::after{content:''; position:absolute; left:0; right:0; top:0; height:22px;
-  background:inherit; clip-path:polygon(0 0,100% 0,100% 40%,50% 100%,0 40%)}
-.env .flap i{position:absolute; left:0; top:0; bottom:0; background:var(--kraft); opacity:.85}
-.env .em{font-size:20px}
-.env .nm{font-weight:700; font-size:13px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.env .left{font-family:'Bricolage Grotesque'; font-weight:800; font-size:15px; margin-top:1px}
-.env .sub{font-size:11px; color:var(--muted)}
-.env.over .left{color:var(--red)}
-.env.done .left{color:var(--green)}
-
-.bar{height:7px; background:var(--paper); border-radius:99px; overflow:hidden}
-.bar i{display:block; height:100%; background:var(--primary); border-radius:99px; transition:width .4s ease}
-.bar i.warn{background:var(--kraft)} .bar i.over{background:var(--red)}
-.usage{display:flex; flex-direction:column; gap:12px}
-.usage .row .top{display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px}
-.usage .row .top .cat{font-weight:700}
-.usage .row .top .amt{color:var(--muted); font-weight:600}
-
-/* bills */
-.bill{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line)}
-.bill:last-child{border-bottom:none}
-.bill .due{width:42px; text-align:center; background:var(--paper); border-radius:10px; padding:5px 0; flex-shrink:0}
-.bill .due b{display:block; font-size:15px; line-height:1.1}
-.bill .due span{font-size:9.5px; color:var(--muted); font-weight:700; text-transform:uppercase}
-.bill .mid{flex:1; min-width:0}
-.bill .mid .d{font-weight:700; font-size:14px}
-.bill .mid .s{font-size:12px; color:var(--muted)}
-.bill.paid{opacity:.55}
-.bill.late .due{background:var(--red-soft)} .bill.late .due b{color:var(--red)}
-
-/* transactions */
-.txn{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line)}
-.txn:last-child{border-bottom:none}
-.txn .ic{width:38px; height:38px; border-radius:12px; display:grid; place-items:center; font-size:16px; flex-shrink:0; background:var(--paper)}
-.txn.in .ic{background:var(--green-soft)} .txn.out .ic{background:var(--red-soft)}
-.txn .mid{flex:1; min-width:0}
-.txn .mid .d{font-weight:700; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.txn .mid .s{font-size:12px; color:var(--muted)}
-.txn .amt{font-weight:800; font-size:14px; white-space:nowrap}
-.txn.in .amt{color:var(--green)} .txn.out .amt{color:var(--ink)}
-.txn .del{border:none; background:none; color:#B9BFCF; font-size:15px; cursor:pointer; padding:4px}
-.fchips{display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; scrollbar-width:none}
-.fchips::-webkit-scrollbar{display:none}
-.fchip{border:1px solid var(--line); background:var(--card); border-radius:999px; padding:6px 14px;
-  font:inherit; font-size:13px; font-weight:600; cursor:pointer; color:var(--muted); flex-shrink:0}
-.fchip.on{background:var(--deep); border-color:var(--deep); color:#fff}
-
-/* forms */
-label.f{display:block; font-size:12px; font-weight:700; color:var(--muted); margin:12px 0 5px}
-input.f, select.f{width:100%; padding:12px 13px; border:1.5px solid var(--line); border-radius:12px;
-  font:inherit; font-size:15px; background:var(--card); color:var(--ink)}
-input.f:focus, select.f:focus{outline:none; border-color:var(--primary)}
+header.site .bar{display:flex; align-items:center; justify-content:space-between; padding:14px 0}
+.logo{font-family:'Bricolage Grotesque'; font-weight:800; font-size:20px; display:flex; align-items:center; gap:6px}
+.logo em{font-style:normal; color:var(--kraft)}
 .btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; border:none; cursor:pointer;
-  border-radius:12px; padding:12px 18px; font:inherit; font-weight:700; font-size:14.5px}
-.btn.p{background:var(--primary); color:#fff; width:100%}
-.btn.p:active{background:var(--deep)}
+  border-radius:12px; padding:12px 20px; font:inherit; font-weight:700; font-size:14.5px; text-decoration:none}
+.btn.p{background:var(--primary); color:#fff}
+.btn.p:hover{background:var(--deep)}
 .btn.ghost{background:var(--paper); color:var(--ink)}
-.btn.sm{padding:8px 12px; font-size:13px; border-radius:10px}
-.btn.dngr{background:var(--red-soft); color:var(--red)}
-.btn.ok{background:var(--green-soft); color:var(--green)}
-.seg{display:flex; background:var(--paper); border-radius:12px; padding:4px; gap:4px; margin-top:6px}
-.seg button{flex:1; border:none; background:none; font:inherit; font-weight:700; font-size:13.5px;
-  padding:9px 0; border-radius:9px; cursor:pointer; color:var(--muted)}
-.seg button.on{background:var(--card); color:var(--ink); box-shadow:0 1px 3px rgba(28,39,64,.12)}
+.btn.lg{padding:15px 26px; font-size:16px; border-radius:14px}
 
-.brow{display:flex; align-items:center; gap:10px; padding:7px 0}
-.brow .em{width:26px; text-align:center}
-.brow .nm{flex:1; font-size:13.5px; font-weight:600; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.brow input{width:130px; padding:8px 10px; border:1.5px solid var(--line); border-radius:10px;
-  font:inherit; font-size:14px; text-align:right}
-.brow input:focus{outline:none; border-color:var(--primary)}
-.totline{display:flex; justify-content:space-between; font-weight:800; font-size:14px; padding:10px 0 2px; border-top:1.5px solid var(--line); margin-top:6px}
-.neg{color:var(--red)} .pos{color:var(--green)}
+/* ---- hero ---- */
+.hero{padding:64px 0 40px; text-align:center}
+.hero .badge{display:inline-flex; align-items:center; gap:6px; background:var(--kraft-soft); color:var(--kraft);
+  font-weight:700; font-size:12.5px; padding:6px 14px; border-radius:999px; margin-bottom:18px}
+.hero h1{font-size:clamp(30px,5vw,50px); font-weight:800; max-width:760px; margin:0 auto 16px}
+.hero h1 .accent{color:var(--kraft)}
+.hero p.lead{font-size:16.5px; color:var(--muted); max-width:560px; margin:0 auto 30px}
+.hero .cta-row{display:flex; gap:12px; justify-content:center; flex-wrap:wrap}
+.hero .note{margin-top:14px; font-size:12.5px; color:var(--muted)}
 
-table.t{width:100%; border-collapse:collapse; font-size:13.5px}
-table.t th{text-align:left; font-size:11.5px; color:var(--muted); font-weight:700; text-transform:uppercase;
-  letter-spacing:.05em; padding:6px 4px; border-bottom:1px solid var(--line)}
-table.t td{padding:9px 4px; border-bottom:1px solid var(--line)}
-table.t tr:last-child td{border-bottom:none}
-table.t td.r, table.t th.r{text-align:right}
+/* ---- phone mock ---- */
+.mock-wrap{display:flex; justify-content:center; margin-top:48px}
+.phone{width:280px; background:linear-gradient(150deg,var(--deep) 0%,var(--primary) 100%); border-radius:34px;
+  padding:14px; box-shadow:0 30px 70px rgba(35,47,102,.35)}
+.phone .screen{background:var(--card); border-radius:22px; overflow:hidden}
+.phone .pbar{background:var(--deep); color:#fff; padding:14px 16px 10px; font-weight:800; font-size:14px}
+.phone .pbody{padding:14px}
+.phone .phero{background:linear-gradient(150deg,var(--deep),var(--primary)); color:#fff; border-radius:14px; padding:14px; margin-bottom:10px}
+.phone .phero .l{font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:#B9C4EA; font-weight:600}
+.phone .phero .v{font-family:'Bricolage Grotesque'; font-weight:800; font-size:22px; margin-top:2px}
+.phone .prow{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.phone .penv{background:var(--paper); border-radius:10px; padding:10px 8px; font-size:11px}
+.phone .penv b{display:block; font-family:'Bricolage Grotesque'; font-size:13px; margin-top:2px}
 
-.trend{display:flex; align-items:flex-end; gap:10px; height:120px; padding-top:6px}
-.trend .grp{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; min-width:0}
-.trend .pair{display:flex; gap:3px; align-items:flex-end; height:96px}
-.trend .pair i{width:11px; border-radius:4px 4px 2px 2px; min-height:3px}
-.trend .pair .in{background:var(--green)} .trend .pair .out{background:var(--kraft)}
-.trend span{font-size:9.5px; color:var(--muted); font-weight:600}
+/* ---- sections ---- */
+section{padding:56px 0}
+.eyebrow{font-size:12.5px; font-weight:700; color:var(--kraft); text-transform:uppercase; letter-spacing:.08em; text-align:center; margin-bottom:8px}
+h2.h{font-size:clamp(24px,3.4vw,32px); font-weight:800; text-align:center; max-width:640px; margin:0 auto 12px}
+p.sub{text-align:center; color:var(--muted); max-width:520px; margin:0 auto 36px}
 
-.list-item{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line)}
-.list-item:last-child{border-bottom:none}
-.list-item .grow{flex:1; min-width:0}
-.list-item .t1{font-weight:700; font-size:14px}
-.list-item .t2{font-size:12px; color:var(--muted)}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:760px){ .grid3{grid-template-columns:1fr} .grid2{grid-template-columns:1fr} }
 
-nav.bottom{position:fixed; bottom:0; left:0; right:0; z-index:30; background:var(--card);
-  border-top:1px solid var(--line); display:flex; justify-content:space-around; align-items:center;
-  padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
-nav.bottom button{border:none; background:none; cursor:pointer; display:flex; flex-direction:column;
-  align-items:center; gap:2px; font:inherit; font-size:10.5px; font-weight:700; color:#9AA2B8; width:64px}
-nav.bottom button .i{font-size:19px}
-nav.bottom button.on{color:var(--primary)}
-nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kraft); color:#fff;
-  font-size:26px; display:grid; place-items:center; margin-top:-26px;
-  box-shadow:0 6px 16px rgba(201,130,46,.4); border:4px solid var(--bg)}
+.feat{background:var(--card); border-radius:var(--r); padding:22px; box-shadow:var(--shadow)}
+.feat .ic{width:44px; height:44px; border-radius:12px; background:var(--paper); display:grid; place-items:center; font-size:20px; margin-bottom:14px}
+.feat h3{font-size:16px; font-weight:800; margin-bottom:6px}
+.feat p{font-size:13.5px; color:var(--muted)}
 
-.modal-bg{position:fixed; inset:0; background:rgba(20,27,48,.5); z-index:40; display:none; align-items:flex-end; justify-content:center}
-.modal-bg.open{display:flex}
-.modal{background:var(--card); width:100%; max-width:560px; border-radius:22px 22px 0 0;
-  padding:20px 20px calc(24px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; animation:up .22s ease}
-@keyframes up{from{transform:translateY(40px); opacity:.6}to{transform:none; opacity:1}}
-.modal h3{font-size:17px; font-weight:800; display:flex; justify-content:space-between; align-items:center}
-.modal h3 button{border:none; background:var(--paper); width:30px; height:30px; border-radius:50%; font-size:14px; cursor:pointer}
-.empty{text-align:center; color:var(--muted); font-size:13.5px; padding:22px 10px}
-.empty b{display:block; font-family:'Bricolage Grotesque'; font-size:14.5px; color:var(--ink); margin-bottom:3px}
-.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(96px + env(safe-area-inset-bottom));
-  background:var(--deep); color:#fff; font-size:13px; font-weight:600; padding:10px 18px; border-radius:99px;
-  z-index:50; opacity:0; pointer-events:none; transition:opacity .25s}
-.toast.show{opacity:1}
-.hint{font-size:12px; color:var(--muted); margin-top:8px}
+.steps{counter-reset:step}
+.step{display:flex; gap:16px; padding:18px 0; border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:none}
+.step .num{width:36px; height:36px; flex-shrink:0; border-radius:50%; background:var(--deep); color:#fff;
+  display:grid; place-items:center; font-family:'Bricolage Grotesque'; font-weight:800; font-size:15px}
+.step h3{font-size:15.5px; font-weight:800; margin-bottom:3px}
+.step p{font-size:13.5px; color:var(--muted)}
 
-/* ===== auth gate ===== */
-#auth-gate{position:fixed; inset:0; z-index:100; background:linear-gradient(160deg,var(--deep),var(--primary));
-  display:none; align-items:center; justify-content:center; padding:24px}
-#auth-gate.open{display:flex}
-.ag-card{background:var(--card); border-radius:22px; padding:28px 24px; width:100%; max-width:400px; box-shadow:0 30px 60px rgba(0,0,0,.3)}
-.ag-card .logo{font-family:'Bricolage Grotesque'; font-weight:800; font-size:24px; text-align:center}
-.ag-card .logo em{font-style:normal; color:var(--kraft)}
-.ag-card p.sub{font-size:13.5px; color:var(--muted); text-align:center; margin-top:6px}
-.ag-err{display:none; background:var(--red-soft); color:var(--red); font-size:13px; font-weight:600;
-  border-radius:10px; padding:10px 12px; margin-top:12px}
-.ag-err.show{display:block}
-.ag-link{display:block; text-align:center; margin-top:14px; font-size:13px; color:var(--primary); font-weight:600; cursor:pointer; background:none; border:none; width:100%}
-#sync-dot{background:rgba(255,255,255,.13); border:none; color:#fff; height:36px; padding:0 12px;
-  border-radius:99px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:5px}
+.envelopes-strip{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:8px}
+.epill{background:var(--card); border:1px solid var(--line); border-radius:999px; padding:8px 16px; font-size:13px; font-weight:600; box-shadow:var(--shadow)}
+
+.cta-band{background:linear-gradient(150deg,var(--deep) 0%,var(--primary) 100%); border-radius:24px; padding:44px 24px;
+  text-align:center; color:#fff; margin:8px 0}
+.cta-band h2{color:#fff; margin-bottom:10px}
+.cta-band p{color:#C7CFEE; max-width:480px; margin:0 auto 24px}
+.cta-band .btn.p{background:var(--kraft)}
+.cta-band .btn.p:hover{background:#B4741F}
+
+footer{border-top:1px solid var(--line); padding:28px 0; text-align:center; color:var(--muted); font-size:12.5px}
 </style>
 </head>
 <body>
 
-<!-- ============ GERBANG LOGIN ============ -->
-<div id="auth-gate">
-  <div class="ag-card">
+<header class="site">
+  <div class="wrap bar">
     <div class="logo">✉️ Amplop<em>.</em></div>
-
-    <div id="ag-step-email">
-      <p class="sub">Masuk dengan email yang kamu pakai saat membeli. Kami kirim kode 6 digit — tanpa password.</p>
-      <label class="f">Email</label>
-      <input class="f" type="email" id="ag-email" placeholder="nama@email.com" autocomplete="email">
-      <div style="margin-top:16px"><button class="btn p" id="ag-send" onclick="sendOtp()">Kirim Kode Masuk</button></div>
-    </div>
-
-    <div id="ag-step-otp" style="display:none">
-      <p class="sub">Kode dikirim ke <b id="ag-sent-to"></b>. Cek inbox (dan folder spam).</p>
-      <label class="f">Kode 6 Digit</label>
-      <input class="f num" id="ag-otp" inputmode="numeric" maxlength="6" placeholder="••••••" style="text-align:center; letter-spacing:.4em; font-size:20px">
-      <div style="margin-top:16px"><button class="btn p" id="ag-verify" onclick="verifyOtp()">Masuk</button></div>
-      <button class="ag-link" onclick="agShow('email')">Ganti email / kirim ulang</button>
-    </div>
-
-    <div id="ag-step-license" style="display:none">
-      <p class="sub" style="margin-top:14px">😕 Email <b id="ag-lic-email"></b> belum terdaftar sebagai pembeli.<br><br>
-      Jika kamu sudah membeli, pastikan memakai email yang sama dengan saat checkout, atau hubungi kami dengan bukti pembelianmu.</p>
-      <div style="margin-top:16px"><button class="btn ghost" style="width:100%" onclick="doLogout()">Coba email lain</button></div>
-    </div>
-
-    <div class="ag-err" id="ag-err"></div>
-  </div>
-</div>
-
-<header class="app">
-  <h1>✉️ Amplop<em>.</em></h1>
-  <div style="display:flex; gap:8px; align-items:center">
-    <span id="sync-dot" title="Status sinkronisasi">☁️ —</span>
-    <button class="gear" onclick="go('settings')" aria-label="Pengaturan">⚙️</button>
+    <a class="btn p" href="login.html">Masuk</a>
   </div>
 </header>
 
-<main>
-  <!-- ============ BERANDA ============ -->
-  <section id="page-home" class="page">
-    <div class="monthbar">
-      <button onclick="shiftMonth(-1)">‹</button><div class="mv" id="h-month"></div><button onclick="shiftMonth(1)">›</button>
+<section class="hero">
+  <div class="wrap">
+    <div class="badge">💡 Sistem amplop, versi digital</div>
+    <h1>Atur uang bulananmu <span class="accent">tanpa pusing</span>, cukup dengan amplop</h1>
+    <p class="lead">Bagi penghasilanmu ke amplop-amplop di awal bulan, belanja dari amplopnya, dan langsung tahu berapa yang masih aman dipakai — setiap hari, tanpa hitung manual.</p>
+    <div class="cta-row">
+      <a class="btn p lg" href="login.html">Mulai Sekarang →</a>
+      <a class="btn ghost lg" href="#cara-kerja">Lihat Cara Kerjanya</a>
     </div>
-    <div class="hero">
-      <div class="label">Total saldo semua dompet</div>
-      <div class="big num" id="h-balance">Rp0</div>
-      <div class="chips">
-        <div class="chip k" id="h-safe">Aman dipakai Rp0 /hari</div>
-        <div class="chip" id="h-days">— hari tersisa</div>
+    <div class="note">Masuk tanpa password — cukup email, kami kirim kode 6 digit.</div>
+
+    <div class="mock-wrap">
+      <div class="phone">
+        <div class="screen">
+          <div class="pbar">✉️ Amplop.</div>
+          <div class="pbody">
+            <div class="phero">
+              <div class="l">Total saldo semua dompet</div>
+              <div class="v">Rp4.250.000</div>
+            </div>
+            <div class="prow">
+              <div class="penv">🍚 Makan<b>Rp620rb</b></div>
+              <div class="penv">🚌 Transport<b>Rp180rb</b></div>
+              <div class="penv">🛒 Belanja<b>Rp410rb</b></div>
+              <div class="penv">🎮 Hiburan<b>Rp90rb</b></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+  </div>
+</section>
 
+<section id="fitur">
+  <div class="wrap">
+    <div class="eyebrow">Fitur</div>
+    <h2 class="h">Semua yang kamu butuhkan untuk mengatur keuangan pribadi</h2>
+    <p class="sub">Sederhana, tapi lengkap — dibuat khusus untuk kebiasaan finansial harian.</p>
+    <div class="grid3">
+      <div class="feat">
+        <div class="ic">✉️</div>
+        <h3>Sistem Amplop</h3>
+        <p>Bagi uangmu ke amplop sesuai kebutuhan (makan, transport, hiburan, dll) di awal bulan.</p>
+      </div>
+      <div class="feat">
+        <div class="ic">👛</div>
+        <h3>Multi Dompet</h3>
+        <p>Kelola saldo bank, tunai, dan e-wallet sekaligus dalam satu tampilan yang rapi.</p>
+      </div>
+      <div class="feat">
+        <div class="ic">📅</div>
+        <h3>Pengingat Tagihan</h3>
+        <p>Catat tagihan rutin seperti listrik dan internet, dan jangan sampai telat bayar lagi.</p>
+      </div>
+      <div class="feat">
+        <div class="ic">📊</div>
+        <h3>Laporan Otomatis</h3>
+        <p>Lihat arus kas, pengeluaran per amplop, dan saldo tiap dompet dalam sekejap.</p>
+      </div>
+      <div class="feat">
+        <div class="ic">☁️</div>
+        <h3>Sinkron ke Cloud</h3>
+        <p>Data tersimpan otomatis dan tersinkron di semua perangkatmu, tanpa perlu backup manual.</p>
+      </div>
+      <div class="feat">
+        <div class="ic">🔒</div>
+        <h3>Masuk Tanpa Password</h3>
+        <p>Login aman lewat kode sekali pakai ke email — tidak ada password untuk diingat atau dibobol.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cara-kerja">
+  <div class="wrap">
+    <div class="eyebrow">Cara Kerja</div>
+    <h2 class="h">Tiga langkah sederhana</h2>
+    <p class="sub">Metode yang sudah terbukti puluhan tahun — sekarang dalam bentuk aplikasi.</p>
     <div class="grid2">
-      <div class="stat"><div class="k">Masuk bulan ini</div><div class="v num pos" id="h-in">Rp0</div></div>
-      <div class="stat"><div class="k">Keluar bulan ini</div><div class="v num" id="h-out">Rp0</div></div>
-    </div>
-
-    <div class="card" id="h-bills-card">
-      <h2>Tagihan Terdekat <small><a href="#" onclick="go('settings');return false" style="color:var(--primary)">kelola</a></small></h2>
-      <div id="h-bills"></div>
-    </div>
-
-    <div class="card">
-      <h2>Amplop Bulan Ini <small id="h-env-sub"></small></h2>
-      <div class="env-grid" id="h-envs"></div>
-    </div>
-  </section>
-
-  <!-- ============ TRANSAKSI ============ -->
-  <section id="page-txns" class="page">
-    <div class="monthbar">
-      <button onclick="shiftMonth(-1)">‹</button><div class="mv" id="tx-month"></div><button onclick="shiftMonth(1)">›</button>
-    </div>
-    <input class="f" id="tx-search" placeholder="🔎 Cari keterangan, amplop, atau dompet…" oninput="renderTxns()" style="margin-bottom:12px">
-    <div class="fchips" id="tx-filters"></div>
-    <div class="card"><div id="tx-list"></div></div>
-  </section>
-
-  <!-- ============ AMPLOP ============ -->
-  <section id="page-env" class="page">
-    <div class="monthbar">
-      <button onclick="shiftMonth(-1)">‹</button><div class="mv" id="ev-month"></div><button onclick="shiftMonth(1)">›</button>
-    </div>
-    <div class="card">
-      <div style="display:flex; gap:8px; margin-bottom:6px; flex-wrap:wrap">
-        <button class="btn ghost sm" onclick="copyPrevAlloc()">📋 Salin bulan lalu</button>
-        <button class="btn ghost sm" onclick="openMoveModal()">🔀 Pindah dana</button>
-        <button class="btn ghost sm" onclick="openEnvModal()">＋ Amplop baru</button>
+      <div>
+        <div class="steps">
+          <div class="step">
+            <div class="num">1</div>
+            <div><h3>Isi saldo dompetmu</h3><p>Tambahkan bank, tunai, dan e-wallet beserta saldo awalnya.</p></div>
+          </div>
+          <div class="step">
+            <div class="num">2</div>
+            <div><h3>Isi amplop di awal bulan</h3><p>Tentukan jatah tiap kebutuhan — makan, transport, tagihan, dan lainnya.</p></div>
+          </div>
+          <div class="step">
+            <div class="num">3</div>
+            <div><h3>Catat tiap pengeluaran</h3><p>Pilih amplopnya saat mencatat transaksi. Sisa amplop dihitung otomatis.</p></div>
+          </div>
+        </div>
       </div>
-      <div id="ev-rows"></div>
-      <div class="totline"><span>Total diisi ke amplop</span><span class="num" id="ev-total">Rp0</span></div>
-      <div class="totline" style="border:none;padding-top:4px"><span>Pemasukan bulan ini</span><span class="num" id="ev-income">Rp0</span></div>
-      <p class="hint">Isi tiap amplop di awal bulan. Nama amplop bisa diedit dengan menekan emojinya.</p>
-    </div>
-    <div class="card">
-      <h2>Sisa per Amplop</h2>
-      <div class="usage" id="ev-usage"></div>
-    </div>
-  </section>
-
-  <!-- ============ LAPORAN ============ -->
-  <section id="page-report" class="page">
-    <div class="monthbar">
-      <button onclick="shiftMonth(-1)">‹</button><div class="mv" id="rp-month"></div><button onclick="shiftMonth(1)">›</button>
-    </div>
-    <div class="grid2">
-      <div class="stat"><div class="k">Pemasukan</div><div class="v num pos" id="rp-in">Rp0</div></div>
-      <div class="stat"><div class="k">Pengeluaran</div><div class="v num" id="rp-out">Rp0</div></div>
-      <div class="stat"><div class="k">Selisih (Cashflow)</div><div class="v num" id="rp-net">Rp0</div></div>
-      <div class="stat"><div class="k">Rata-rata /hari</div><div class="v num" id="rp-avg">Rp0</div></div>
-    </div>
-    <div class="card">
-      <h2>Pengeluaran per Amplop</h2>
-      <div class="usage" id="rp-envs"></div>
-    </div>
-    <div class="card">
-      <h2>Arus Kas 6 Bulan <small><span style="color:var(--green)">■</span> masuk <span style="color:var(--kraft)">■</span> keluar</small></h2>
-      <div class="trend" id="rp-trend"></div>
-    </div>
-    <div class="card">
-      <h2>Saldo per Dompet</h2>
-      <table class="t"><thead><tr><th>Dompet</th><th class="r">Saldo saat ini</th></tr></thead><tbody id="rp-wallets"></tbody></table>
-    </div>
-  </section>
-
-  <!-- ============ PENGATURAN ============ -->
-  <section id="page-settings" class="page">
-    <div class="card">
-      <h2>👤 Akun</h2>
-      <div class="list-item"><div class="grow">
-        <div class="t1" id="st-email">—</div>
-        <div class="t2">Data tersinkron otomatis ke akun ini di semua perangkatmu</div></div>
-        <button class="btn ghost sm" onclick="doLogout()">Keluar</button>
+      <div>
+        <p class="sub" style="margin-bottom:16px">Contoh amplop yang bisa kamu buat:</p>
+        <div class="envelopes-strip">
+          <div class="epill">🍚 Makan</div>
+          <div class="epill">🏠 Rumah & Tagihan</div>
+          <div class="epill">🚌 Transportasi</div>
+          <div class="epill">🛒 Belanja</div>
+          <div class="epill">🎮 Hiburan</div>
+          <div class="epill">💊 Kesehatan</div>
+          <div class="epill">💝 Sosial & Hadiah</div>
+          <div class="epill">🐖 Tabungan</div>
+        </div>
       </div>
     </div>
-    <div class="card">
-      <h2>👛 Dompet <small><button class="btn ghost sm" onclick="openWalletModal()">＋ Tambah</button></small></h2>
-      <div id="st-wallets"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="cta-band">
+      <h2 class="h">Siap atur uangmu dengan lebih tenang?</h2>
+      <p>Tidak perlu kartu kredit. Cukup masuk dengan email dan mulai isi amplop pertamamu hari ini.</p>
+      <a class="btn p lg" href="login.html">Masuk / Daftar Gratis →</a>
     </div>
-    <div class="card">
-      <h2>📅 Tagihan Rutin <small><button class="btn ghost sm" onclick="openBillModal()">＋ Tambah</button></small></h2>
-      <div id="st-bills"></div>
-      <p class="hint">Tagihan akan muncul di Beranda menjelang jatuh tempo. Tekan "Bayar" untuk mencatatnya otomatis sebagai transaksi.</p>
-    </div>
-    <div class="card">
-      <h2>💾 Data</h2>
-      <div style="display:flex; gap:8px">
-        <button class="btn ghost" style="flex:1" onclick="exportData()">⬇️ Ekspor</button>
-        <button class="btn ghost" style="flex:1" onclick="document.getElementById('import-file').click()">⬆️ Impor</button>
-        <button class="btn dngr" onclick="resetData()">Reset</button>
-      </div>
-      <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importData(this)">
-      <p class="hint">Data tersinkron otomatis ke cloud. Ekspor tetap berguna sebagai cadangan pribadi milikmu sendiri.</p>
-    </div>
-    <div class="card">
-      <h2>Tentang</h2>
-      <p style="font-size:13.5px; color:var(--muted)">Amplop v1.0 — atur uang dengan sistem amplop. Isi amplop di awal bulan, belanja dari amplopnya, dan tahu persis berapa yang aman dipakai setiap hari.</p>
-    </div>
-  </section>
-</main>
-
-<nav class="bottom">
-  <button id="nav-home" onclick="go('home')"><span class="i">🏠</span>Beranda</button>
-  <button id="nav-txns" onclick="go('txns')"><span class="i">🧾</span>Transaksi</button>
-  <button class="fab" onclick="openTxnModal()" aria-label="Catat">＋</button>
-  <button id="nav-env" onclick="go('env')"><span class="i">✉️</span>Amplop</button>
-  <button id="nav-report" onclick="go('report')"><span class="i">📊</span>Laporan</button>
-</nav>
-
-<!-- txn modal -->
-<div class="modal-bg" id="txn-modal"><div class="modal">
-  <h3 id="txn-modal-title">Catat Transaksi <button onclick="closeModal('txn-modal')">✕</button></h3>
-  <input type="hidden" id="txf-edit-id" value="">
-  <div class="seg" id="tx-seg">
-    <button data-t="out" class="on" onclick="setTxType('out')">Keluar</button>
-    <button data-t="in" onclick="setTxType('in')">Masuk</button>
-    <button data-t="tf" onclick="setTxType('tf')">Transfer</button>
   </div>
-  <label class="f">Tanggal</label><input class="f" type="date" id="txf-date">
-  <label class="f">Keterangan</label><input class="f" id="txf-desc" placeholder="cth: Belanja mingguan, Gaji">
-  <label class="f">Nominal (Rp)</label><input class="f num" id="txf-amt" inputmode="numeric" placeholder="0" oninput="fmtInput(this)">
-  <div id="txf-env-wrap"><label class="f">Dari Amplop</label><select class="f" id="txf-env"></select></div>
-  <label class="f" id="txf-wallet-label">Dompet</label><select class="f" id="txf-wallet"></select>
-  <div id="txf-to-wrap" style="display:none"><label class="f">Ke Dompet</label><select class="f" id="txf-to"></select></div>
-  <div style="margin-top:18px; display:flex; gap:8px">
-    <button class="btn p" style="flex:1" onclick="saveTxn()">Simpan</button>
-    <button class="btn dngr" id="txf-del" style="display:none" onclick="delTxnFromModal()">Hapus</button>
-  </div>
-</div></div>
+</section>
 
-<!-- envelope modal -->
-<div class="modal-bg" id="env-modal"><div class="modal">
-  <h3 id="env-modal-title">Amplop Baru <button onclick="closeModal('env-modal')">✕</button></h3>
-  <input type="hidden" id="ev-edit-id" value="">
-  <label class="f">Emoji</label><input class="f" id="evf-em" maxlength="4" placeholder="✉️">
-  <label class="f">Nama Amplop</label><input class="f" id="evf-nm" placeholder="cth: Makan, Transportasi">
-  <div style="margin-top:18px; display:flex; gap:8px">
-    <button class="btn p" style="flex:1" onclick="saveEnv()">Simpan</button>
-    <button class="btn dngr" id="evf-del" style="display:none" onclick="deleteEnv()">Hapus</button>
-  </div>
-</div></div>
+<footer>
+  <div class="wrap">✉️ Amplop — atur uang dengan sistem amplop. © 2026</div>
+</footer>
 
-<!-- wallet modal -->
-<div class="modal-bg" id="wallet-modal"><div class="modal">
-  <h3 id="wallet-modal-title">Dompet Baru <button onclick="closeModal('wallet-modal')">✕</button></h3>
-  <input type="hidden" id="wl-edit-id" value="">
-  <label class="f">Nama Dompet</label><input class="f" id="wlf-nm" placeholder="cth: Bank Utama, Tunai, E-Wallet">
-  <label class="f">Jenis</label>
-  <select class="f" id="wlf-type"><option>Bank</option><option>Tunai</option><option>E-Wallet</option><option>Lainnya</option></select>
-  <label class="f">Saldo Awal (Rp)</label><input class="f num" id="wlf-open" inputmode="numeric" placeholder="0" oninput="fmtInput(this)">
-  <div style="margin-top:18px; display:flex; gap:8px">
-    <button class="btn p" style="flex:1" onclick="saveWallet()">Simpan</button>
-    <button class="btn dngr" id="wlf-del" style="display:none" onclick="deleteWallet()">Hapus</button>
-  </div>
-</div></div>
-
-<!-- bill modal -->
-<div class="modal-bg" id="bill-modal"><div class="modal">
-  <h3 id="bill-modal-title">Tagihan Rutin Baru <button onclick="closeModal('bill-modal')">✕</button></h3>
-  <input type="hidden" id="bl-edit-id" value="">
-  <label class="f">Nama Tagihan</label><input class="f" id="blf-nm" placeholder="cth: Listrik, Internet, Sewa">
-  <label class="f">Nominal (Rp)</label><input class="f num" id="blf-amt" inputmode="numeric" placeholder="0" oninput="fmtInput(this)">
-  <label class="f">Jatuh Tempo Setiap Tanggal</label><input class="f" type="number" min="1" max="31" id="blf-due" placeholder="cth: 20">
-  <label class="f">Dibayar dari Amplop</label><select class="f" id="blf-env"></select>
-  <label class="f">Dibayar dari Dompet</label><select class="f" id="blf-wallet"></select>
-  <div style="margin-top:18px; display:flex; gap:8px">
-    <button class="btn p" style="flex:1" onclick="saveBill()">Simpan</button>
-    <button class="btn dngr" id="blf-del" style="display:none" onclick="deleteBill()">Hapus</button>
-  </div>
-</div></div>
-
-<!-- move funds modal -->
-<div class="modal-bg" id="move-modal"><div class="modal">
-  <h3>Pindah Dana Antar Amplop <button onclick="closeModal('move-modal')">✕</button></h3>
-  <p class="hint" style="margin-top:6px">Kelebihan di satu amplop? Pindahkan ke amplop yang menipis — inti dari sistem amplop.</p>
-  <label class="f">Dari Amplop</label><select class="f" id="mvf-from"></select>
-  <label class="f">Ke Amplop</label><select class="f" id="mvf-to"></select>
-  <label class="f">Nominal (Rp)</label><input class="f num" id="mvf-amt" inputmode="numeric" placeholder="0" oninput="fmtInput(this)">
-  <div style="margin-top:18px"><button class="btn p" onclick="saveMove()">Pindahkan</button></div>
-</div></div>
-
-<!-- onboarding modal -->
-<div class="modal-bg" id="onboard-modal"><div class="modal">
-  <h3 style="font-size:20px">Selamat datang di Amplop ✉️</h3>
-  <p style="font-size:14px; color:var(--muted); margin-top:6px">Atur uang dengan cara paling sederhana yang terbukti: bagi uangmu ke amplop-amplop di awal bulan, lalu belanja dari amplopnya.</p>
-  <div style="margin-top:14px">
-    <div class="list-item"><div style="font-size:20px">1️⃣</div><div class="grow"><div class="t1">Isi saldo dompetmu</div><div class="t2">Bank, tunai, e-wallet — atur di ⚙️ Pengaturan</div></div></div>
-    <div class="list-item"><div style="font-size:20px">2️⃣</div><div class="grow"><div class="t1">Isi amplop di awal bulan</div><div class="t2">Tentukan jatah tiap kebutuhan di tab ✉️ Amplop</div></div></div>
-    <div class="list-item"><div style="font-size:20px">3️⃣</div><div class="grow"><div class="t1">Catat setiap pengeluaran</div><div class="t2">Tekan ＋, pilih amplopnya. Sisanya kami hitung untukmu</div></div></div>
-  </div>
-  <div style="margin-top:18px; display:flex; gap:8px">
-    <button class="btn p" style="flex:1" onclick="closeModal('onboard-modal');openWalletModal(DB.wallets[0]?.id||'')">Mulai Atur Dompet</button>
-    <button class="btn ghost" onclick="closeModal('onboard-modal')">Nanti saja</button>
-  </div>
-</div></div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-/* ================= DATA ================= */
-/* ====== KONFIGURASI SUPABASE — GANTI DUA NILAI DI BAWAH ====== */
-const SUPABASE_URL='https://pmnfsvkthvlvlidhlmes.supabase.co';        /* cth: https://abcdefgh.supabase.co */
-const SUPABASE_ANON_KEY='sb_publishable_MrR16vXo0iwYPS6evo_FzA_-H-26aLK';
-/* ============================================================== */
-const CONFIGURED = typeof window.supabase!=='undefined' && !SUPABASE_URL.includes('GANTI');
-const sb = CONFIGURED? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-let USER=null;
-let KEY='amplop_local';
-const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-
-const seed={
-  wallets:[
-    {id:'w1', name:'Bank Utama', type:'Bank', open:0},
-    {id:'w2', name:'Tunai', type:'Tunai', open:0},
-    {id:'w3', name:'E-Wallet', type:'E-Wallet', open:0}
-  ],
-  envelopes:[
-    {id:'e1', em:'🍚', name:'Makan'},
-    {id:'e2', em:'🏠', name:'Rumah & Tagihan'},
-    {id:'e3', em:'🚌', name:'Transportasi'},
-    {id:'e4', em:'🛒', name:'Belanja'},
-    {id:'e5', em:'🎮', name:'Hiburan'},
-    {id:'e6', em:'💊', name:'Kesehatan'},
-    {id:'e7', em:'💝', name:'Sosial & Hadiah'},
-    {id:'e8', em:'🐖', name:'Tabungan'}
-  ],
-  allocations:{},   /* {"2026-07": {envId: amount}} */
-  txns:[],          /* {id, type:'in'|'out'|'tf', date, desc, amount, walletId, toWalletId, envId} */
-  bills:[]          /* {id, name, amount, dueDay, envId, walletId, lastPaid:"2026-07"} */
-};
-
-let DB, localT=0;
-function load(){
-  try{
-    const raw=localStorage.getItem(KEY);
-    const p= raw? JSON.parse(raw) : null;
-    if(p && p.wallets){ DB=p; localT=0; }        /* migrasi format lama */
-    else if(p && p.v){ DB=p.v; localT=p.t||0; }
-    else { DB=structuredClone(seed); localT=0; }
-  }catch(e){ DB=structuredClone(seed); localT=0; }
-}
-function persistLocal(){ localT=Date.now(); localStorage.setItem(KEY, JSON.stringify({v:DB, t:localT})); }
-function save(){
-  try{ persistLocal(); }catch(e){ toast('Gagal menyimpan data'); }
-  schedulePush();
-}
-
-let cur=new Date(); cur=new Date(cur.getFullYear(), cur.getMonth(), 1);
-const mkey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-const NOWKEY=()=>{ const n=new Date(); return mkey(new Date(n.getFullYear(), n.getMonth(), 1)); };
-function shiftMonth(n){ cur=new Date(cur.getFullYear(), cur.getMonth()+n, 1); render(); }
-
-/* ================= HELPERS ================= */
-const rp=n=>'Rp'+Math.round(n||0).toLocaleString('id-ID');
-const rpS=n=>(n<0?'−':'')+'Rp'+Math.abs(Math.round(n||0)).toLocaleString('id-ID');
-function fmtInput(el){ const v=el.value.replace(/[^\d]/g,''); el.value=v?Number(v).toLocaleString('id-ID'):''; }
-const parseAmt=s=>Number(String(s).replace(/[^\d]/g,''))||0;
-function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
-function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-const envById=id=>DB.envelopes.find(e=>e.id===id);
-const walletById=id=>DB.wallets.find(w=>w.id===id);
-function allocOf(key){ if(!DB.allocations[key]) DB.allocations[key]={}; return DB.allocations[key]; }
-const sum=o=>Object.values(o||{}).reduce((a,b)=>a+(Number(b)||0),0);
-const txnsOf=key=>DB.txns.filter(t=>t.date&&t.date.startsWith(key));
-
-function walletBalance(id){
-  const w=walletById(id); if(!w) return 0;
-  let b=w.open||0;
-  DB.txns.forEach(t=>{
-    if(t.type==='in' && t.walletId===id) b+=t.amount;
-    if(t.type==='out'&& t.walletId===id) b-=t.amount;
-    if(t.type==='tf'){ if(t.walletId===id) b-=t.amount; if(t.toWalletId===id) b+=t.amount; }
-  });
-  return b;
-}
-function spentByEnv(key){ const m={}; txnsOf(key).forEach(t=>{ if(t.type==='out'&&t.envId) m[t.envId]=(m[t.envId]||0)+t.amount; }); return m; }
-function totIn(key){ return txnsOf(key).filter(t=>t.type==='in').reduce((s,t)=>s+t.amount,0); }
-function totOut(key){ return txnsOf(key).filter(t=>t.type==='out').reduce((s,t)=>s+t.amount,0); }
-
-/* ================= NAV ================= */
-function go(p){
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  document.getElementById('page-'+p).classList.add('active');
-  document.querySelectorAll('nav.bottom button[id]').forEach(x=>x.classList.remove('on'));
-  const nb=document.getElementById('nav-'+p); if(nb) nb.classList.add('on');
-  window.scrollTo({top:0}); render();
-}
-
-/* ================= HOME ================= */
-function renderHome(){
-  const key=mkey(cur), isCur=key===NOWKEY();
-  document.getElementById('h-month').textContent=MONTHS[cur.getMonth()]+' '+cur.getFullYear();
-  const total=DB.wallets.reduce((s,w)=>s+walletBalance(w.id),0);
-  document.getElementById('h-balance').textContent=rpS(total);
-  document.getElementById('h-in').textContent=rp(totIn(key));
-  document.getElementById('h-out').textContent=rp(totOut(key));
-
-  /* sisa amplop & aman dipakai per hari (khusus bulan berjalan) */
-  const alloc=allocOf(key), spent=spentByEnv(key);
-  let left=0;
-  DB.envelopes.forEach(e=>{ const l=(alloc[e.id]||0)-(spent[e.id]||0); if(l>0) left+=l; });
-  const now=new Date();
-  if(isCur){
-    const daysInMonth=new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-    const daysLeft=daysInMonth-now.getDate()+1;
-    document.getElementById('h-safe').textContent='Aman dipakai '+rp(left/daysLeft)+' /hari';
-    document.getElementById('h-days').textContent=daysLeft+' hari tersisa bulan ini';
-  } else {
-    document.getElementById('h-safe').textContent='Sisa amplop '+rp(left);
-    document.getElementById('h-days').textContent= cur<now? 'Bulan sudah berlalu':'Bulan mendatang';
-  }
-
-  /* bills: hanya relevan untuk bulan berjalan */
-  document.getElementById('h-bills-card').style.display= isCur? 'block':'none';
-  const bl=document.getElementById('h-bills');
-  if(!DB.bills.length){
-    bl.innerHTML='<div class="empty"><b>Belum ada tagihan rutin</b>Tambahkan lewat ⚙️ Pengaturan agar tidak ada yang terlewat.</div>';
-  } else {
-    const today=now.getDate();
-    const items=DB.bills.map(b=>{
-      const paid=b.lastPaid===NOWKEY();
-      const late=!paid && b.dueDay<today;
-      return {b, paid, late, order: paid? 1000+b.dueDay : b.dueDay};
-    }).sort((a,z)=>a.order-z.order);
-    bl.innerHTML=items.map(({b,paid,late})=>`
-      <div class="bill ${paid?'paid':''} ${late?'late':''}">
-        <div class="due"><b class="num">${b.dueDay}</b><span>${late?'lewat':'tgl'}</span></div>
-        <div class="mid"><div class="d">${esc(b.name)}</div>
-        <div class="s">${rp(b.amount)} · ${esc(envById(b.envId)?.name||'-')} · ${esc(walletById(b.walletId)?.name||'-')}</div></div>
-        ${paid? '<span style="font-size:12px;font-weight:700;color:var(--green)">✓ Lunas</span>'
-              : `<button class="btn ok sm" onclick="payBill('${b.id}')">Bayar</button>`}
-      </div>`).join('');
-  }
-
-  /* envelopes grid mengikuti bulan yang dilihat */
-  const withData=DB.envelopes.filter(e=>(alloc[e.id]||0)>0 || (spent[e.id]||0)>0);
-  const list=withData.length? withData : DB.envelopes;
-  document.getElementById('h-env-sub').textContent=MONTHS[cur.getMonth()];
-  document.getElementById('h-envs').innerHTML=list.map(e=>{
-    const a=alloc[e.id]||0, s=spent[e.id]||0, l=a-s;
-    const pct=a>0? Math.min(s/a*100,100) : 0;
-    return `<div class="env ${l<0?'over':''}" onclick="go('env')">
-      <div class="flap"><i style="width:${pct}%"></i></div>
-      <div class="em">${esc(e.em)}</div><div class="nm">${esc(e.name)}</div>
-      <div class="left num">${rpS(l)}</div>
-      <div class="sub num">dari ${rp(a)}</div></div>`;
-  }).join('');
-}
-function payBill(id){
-  const b=DB.bills.find(x=>x.id===id); if(!b) return;
-  if(!confirm('Catat pembayaran "'+b.name+'" sebesar '+rp(b.amount)+'?')) return;
-  const now=new Date();
-  DB.txns.push({id:uid(), type:'out', date:now.toISOString().slice(0,10),
-    desc:b.name, amount:b.amount, walletId:b.walletId, envId:b.envId});
-  b.lastPaid=NOWKEY();
-  save(); render(); toast('Tagihan dicatat lunas ✓');
-}
-
-/* ================= TRANSAKSI ================= */
-let txFilter='all';
-function renderTxns(){
-  const key=mkey(cur);
-  document.getElementById('tx-month').textContent=MONTHS[cur.getMonth()]+' '+cur.getFullYear();
-  const F=[['all','Semua'],['out','Keluar'],['in','Masuk'],['tf','Transfer']];
-  document.getElementById('tx-filters').innerHTML=F.map(([v,l])=>
-    `<button class="fchip ${txFilter===v?'on':''}" onclick="txFilter='${v}';renderTxns()">${l}</button>`).join('');
-  let list=txnsOf(key).sort((a,b)=>b.date.localeCompare(a.date));
-  if(txFilter!=='all') list=list.filter(t=>t.type===txFilter);
-  const q=(document.getElementById('tx-search').value||'').toLowerCase().trim();
-  if(q) list=list.filter(t=>
-    (t.desc||'').toLowerCase().includes(q) ||
-    (envById(t.envId)?.name||'').toLowerCase().includes(q) ||
-    (walletById(t.walletId)?.name||'').toLowerCase().includes(q) ||
-    (walletById(t.toWalletId)?.name||'').toLowerCase().includes(q));
-  const el=document.getElementById('tx-list');
-  if(!list.length){ el.innerHTML='<div class="empty"><b>'+(q?'Tidak ada hasil':'Belum ada transaksi')+'</b>'+(q?'Coba kata kunci lain.':'Tekan ＋ untuk mencatat.')+'</div>'; return; }
-  el.innerHTML=list.map(t=>{
-    const d=new Date(t.date+'T00:00');
-    const ic=t.type==='in'?'💰':t.type==='tf'?'🔁':(envById(t.envId)?.em||'🧾');
-    const sign=t.type==='in'?'+':t.type==='tf'?'':'−';
-    let sub=d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3);
-    if(t.type==='out') sub+=' · '+(envById(t.envId)?.name||'Tanpa amplop')+' · '+(walletById(t.walletId)?.name||'-');
-    if(t.type==='in')  sub+=' · '+(walletById(t.walletId)?.name||'-');
-    if(t.type==='tf')  sub+=' · '+(walletById(t.walletId)?.name||'-')+' → '+(walletById(t.toWalletId)?.name||'-');
-    return `<div class="txn ${t.type}" style="cursor:pointer" onclick="openTxnModal('${t.id}')">
-      <div class="ic">${ic}</div>
-      <div class="mid"><div class="d">${esc(t.desc||'(tanpa keterangan)')}</div><div class="s">${sub}</div></div>
-      <div class="amt num">${sign}${rp(t.amount)}</div>
-      <button class="del" onclick="event.stopPropagation();delTxn('${t.id}')" aria-label="Hapus">🗑</button></div>`;
-  }).join('');
-}
-function delTxn(id){ if(!confirm('Hapus transaksi ini?')) return; DB.txns=DB.txns.filter(t=>t.id!==id); save(); render(); toast('Dihapus'); }
-
-/* ================= AMPLOP ================= */
-function renderEnv(){
-  const key=mkey(cur), alloc=allocOf(key), spent=spentByEnv(key);
-  document.getElementById('ev-month').textContent=MONTHS[cur.getMonth()]+' '+cur.getFullYear();
-  document.getElementById('ev-rows').innerHTML=DB.envelopes.map(e=>{
-    const v=alloc[e.id]? Number(alloc[e.id]).toLocaleString('id-ID'):'';
-    return `<div class="brow">
-      <span class="em" style="cursor:pointer" onclick="openEnvModal('${e.id}')">${esc(e.em)}</span>
-      <span class="nm">${esc(e.name)}</span>
-      <input inputmode="numeric" class="num" value="${v}" placeholder="0"
-        oninput="fmtInput(this)" onchange="setAlloc('${e.id}',this.value)"></div>`;
-  }).join('');
-  document.getElementById('ev-total').textContent=rp(sum(alloc));
-  document.getElementById('ev-income').textContent=rp(totIn(key));
-
-  const rows=DB.envelopes.filter(e=>(alloc[e.id]||0)>0||(spent[e.id]||0)>0);
-  const ul=document.getElementById('ev-usage');
-  if(!rows.length){ ul.innerHTML='<div class="empty"><b>Amplop masih kosong</b>Isi nominal di atas, progres pemakaiannya muncul di sini.</div>'; }
-  else ul.innerHTML=rows.map(e=>{
-    const a=alloc[e.id]||0, s=spent[e.id]||0;
-    const pct=a>0? Math.min(s/a*100,100):(s>0?100:0);
-    const cls=a>0&&s>a?'over':(pct>=85?'warn':'');
-    return `<div class="row"><div class="top"><span class="cat">${esc(e.em)} ${esc(e.name)}</span>
-      <span class="amt num">${rp(s)} / ${rp(a)}</span></div>
-      <div class="bar"><i class="${cls}" style="width:${pct}%"></i></div></div>`;
-  }).join('');
-}
-function setAlloc(id,val){ const a=allocOf(mkey(cur)); const n=parseAmt(val); if(n===0) delete a[id]; else a[id]=n; save(); renderEnv(); renderHome(); }
-function copyPrevAlloc(){
-  const prev=new Date(cur.getFullYear(), cur.getMonth()-1, 1);
-  const pa=DB.allocations[mkey(prev)];
-  if(!pa||!sum(pa)){ toast('Tidak ada isi amplop bulan lalu'); return; }
-  if(!confirm('Salin isi amplop '+MONTHS[prev.getMonth()]+'? Nilai bulan ini akan ditimpa.')) return;
-  DB.allocations[mkey(cur)]=structuredClone(pa); save(); render(); toast('Disalin ✓');
-}
-function openMoveModal(){
-  if(DB.envelopes.length<2){ toast('Butuh minimal 2 amplop'); return; }
-  const opts=DB.envelopes.map(e=>`<option value="${e.id}">${esc(e.em)} ${esc(e.name)}</option>`).join('');
-  document.getElementById('mvf-from').innerHTML=opts;
-  document.getElementById('mvf-to').innerHTML=opts;
-  document.getElementById('mvf-to').selectedIndex=1;
-  document.getElementById('mvf-amt').value='';
-  document.getElementById('move-modal').classList.add('open');
-}
-function saveMove(){
-  const from=document.getElementById('mvf-from').value;
-  const to=document.getElementById('mvf-to').value;
-  const amt=parseAmt(document.getElementById('mvf-amt').value);
-  if(from===to){ toast('Amplop asal dan tujuan sama'); return; }
-  if(!amt){ toast('Nominal wajib diisi'); return; }
-  const a=allocOf(mkey(cur));
-  if((a[from]||0)<amt){ toast('Isi amplop asal tidak cukup ('+rp(a[from]||0)+')'); return; }
-  a[from]-=amt; if(a[from]===0) delete a[from];
-  a[to]=(a[to]||0)+amt;
-  save(); closeModal('move-modal'); render(); toast('Dana dipindahkan ✓');
-}
-function openEnvModal(id=''){
-  document.getElementById('ev-edit-id').value=id;
-  const e=id? envById(id):{em:'',name:''};
-  document.getElementById('env-modal-title').firstChild.textContent=id?'Edit Amplop ':'Amplop Baru ';
-  document.getElementById('evf-em').value=e.em||'';
-  document.getElementById('evf-nm').value=e.name||'';
-  document.getElementById('evf-del').style.display=id?'inline-flex':'none';
-  document.getElementById('env-modal').classList.add('open');
-}
-function saveEnv(){
-  const name=document.getElementById('evf-nm').value.trim();
-  if(!name){ toast('Nama amplop wajib diisi'); return; }
-  const em=document.getElementById('evf-em').value.trim()||'✉️';
-  const id=document.getElementById('ev-edit-id').value;
-  if(id){ const e=envById(id); e.name=name; e.em=em; } else DB.envelopes.push({id:uid(), em, name});
-  save(); closeModal('env-modal'); render(); toast('Amplop disimpan ✓');
-}
-function deleteEnv(){
-  const id=document.getElementById('ev-edit-id').value;
-  if(!id||!confirm('Hapus amplop ini? Transaksi lama tetap tersimpan.')) return;
-  DB.envelopes=DB.envelopes.filter(e=>e.id!==id);
-  Object.values(DB.allocations).forEach(a=>delete a[id]);
-  save(); closeModal('env-modal'); render(); toast('Amplop dihapus');
-}
-
-/* ================= LAPORAN ================= */
-function renderReport(){
-  const key=mkey(cur);
-  document.getElementById('rp-month').textContent=MONTHS[cur.getMonth()]+' '+cur.getFullYear();
-  const tin=totIn(key), tout=totOut(key), net=tin-tout;
-  document.getElementById('rp-in').textContent=rp(tin);
-  document.getElementById('rp-out').textContent=rp(tout);
-  const netEl=document.getElementById('rp-net');
-  netEl.textContent=rpS(net); netEl.className='v num '+(net<0?'neg':'pos');
-  const dim=new Date(cur.getFullYear(), cur.getMonth()+1, 0).getDate();
-  const isCur=key===NOWKEY();
-  const div=isCur? new Date().getDate() : dim;
-  document.getElementById('rp-avg').textContent=rp(tout/Math.max(div,1));
-
-  const spent=spentByEnv(key);
-  const rows=DB.envelopes.filter(e=>spent[e.id]>0).sort((a,b)=>spent[b.id]-spent[a.id]);
-  const max=Math.max(...rows.map(e=>spent[e.id]),1);
-  const el=document.getElementById('rp-envs');
-  if(!rows.length){ el.innerHTML='<div class="empty"><b>Belum ada pengeluaran</b>Grafik muncul setelah ada transaksi keluar.</div>'; }
-  else el.innerHTML=rows.map(e=>`<div class="row"><div class="top">
-    <span class="cat">${esc(e.em)} ${esc(e.name)}</span><span class="amt num">${rp(spent[e.id])}</span></div>
-    <div class="bar"><i style="width:${spent[e.id]/max*100}%"></i></div></div>`).join('');
-
-  /* 6-month trend */
-  const cols=[];
-  for(let i=5;i>=0;i--){
-    const d=new Date(cur.getFullYear(), cur.getMonth()-i, 1), k=mkey(d);
-    cols.push({m:MONTHS[d.getMonth()].slice(0,3), in:totIn(k), out:totOut(k)});
-  }
-  const tmax=Math.max(...cols.flatMap(c=>[c.in,c.out]),1);
-  document.getElementById('rp-trend').innerHTML=cols.map(c=>
-    `<div class="grp"><div class="pair">
-      <i class="in" style="height:${Math.max(c.in/tmax*100,3)}%" title="${rp(c.in)}"></i>
-      <i class="out" style="height:${Math.max(c.out/tmax*100,3)}%" title="${rp(c.out)}"></i></div>
-      <span>${c.m}</span></div>`).join('');
-
-  document.getElementById('rp-wallets').innerHTML=DB.wallets.map(w=>{
-    const b=walletBalance(w.id);
-    return `<tr><td style="font-weight:700">${esc(w.name)} <span style="color:var(--muted);font-weight:500;font-size:12px">· ${esc(w.type)}</span></td>
-      <td class="r num ${b<0?'neg':''}" style="font-weight:700">${rpS(b)}</td></tr>`;
-  }).join('');
-}
-
-/* ================= PENGATURAN ================= */
-function renderSettings(){
-  document.getElementById('st-wallets').innerHTML=DB.wallets.map(w=>
-    `<div class="list-item" style="cursor:pointer" onclick="openWalletModal('${w.id}')">
-      <div class="grow"><div class="t1">${esc(w.name)}</div><div class="t2">${esc(w.type)} · saldo awal ${rp(w.open)}</div></div>
-      <div class="num" style="font-weight:800">${rpS(walletBalance(w.id))}</div></div>`).join('')
-    || '<div class="empty"><b>Belum ada dompet</b></div>';
-  document.getElementById('st-bills').innerHTML=DB.bills.map(b=>
-    `<div class="list-item" style="cursor:pointer" onclick="openBillModal('${b.id}')">
-      <div class="grow"><div class="t1">${esc(b.name)}</div>
-      <div class="t2">tiap tgl ${b.dueDay} · ${rp(b.amount)} · ${esc(envById(b.envId)?.name||'-')}</div></div><div>›</div></div>`).join('')
-    || '<div class="empty"><b>Belum ada tagihan rutin</b>cth: listrik, internet, sewa, cicilan.</div>';
-}
-function openWalletModal(id=''){
-  document.getElementById('wl-edit-id').value=id;
-  const w=id? walletById(id):{name:'',type:'Bank',open:''};
-  document.getElementById('wallet-modal-title').firstChild.textContent=id?'Edit Dompet ':'Dompet Baru ';
-  document.getElementById('wlf-nm').value=w.name||'';
-  document.getElementById('wlf-type').value=w.type||'Bank';
-  document.getElementById('wlf-open').value=w.open? Number(w.open).toLocaleString('id-ID'):'';
-  document.getElementById('wlf-del').style.display=id?'inline-flex':'none';
-  document.getElementById('wallet-modal').classList.add('open');
-}
-function saveWallet(){
-  const name=document.getElementById('wlf-nm').value.trim();
-  if(!name){ toast('Nama dompet wajib diisi'); return; }
-  const id=document.getElementById('wl-edit-id').value;
-  const data={name, type:document.getElementById('wlf-type').value, open:parseAmt(document.getElementById('wlf-open').value)};
-  if(id){ Object.assign(walletById(id), data); } else DB.wallets.push({id:uid(), ...data});
-  save(); closeModal('wallet-modal'); render(); toast('Dompet disimpan ✓');
-}
-function deleteWallet(){
-  const id=document.getElementById('wl-edit-id').value;
-  if(!id) return;
-  if(DB.txns.some(t=>t.walletId===id||t.toWalletId===id)){ toast('Dompet dipakai transaksi — tidak bisa dihapus'); return; }
-  if(!confirm('Hapus dompet ini?')) return;
-  DB.wallets=DB.wallets.filter(w=>w.id!==id);
-  save(); closeModal('wallet-modal'); render(); toast('Dompet dihapus');
-}
-function openBillModal(id=''){
-  document.getElementById('bl-edit-id').value=id;
-  const b=id? DB.bills.find(x=>x.id===id):{name:'',amount:'',dueDay:'',envId:DB.envelopes[0]?.id,walletId:DB.wallets[0]?.id};
-  document.getElementById('bill-modal-title').firstChild.textContent=id?'Edit Tagihan ':'Tagihan Rutin Baru ';
-  document.getElementById('blf-nm').value=b.name||'';
-  document.getElementById('blf-amt').value=b.amount? Number(b.amount).toLocaleString('id-ID'):'';
-  document.getElementById('blf-due').value=b.dueDay||'';
-  document.getElementById('blf-env').innerHTML=DB.envelopes.map(e=>`<option value="${e.id}" ${b.envId===e.id?'selected':''}>${esc(e.em)} ${esc(e.name)}</option>`).join('');
-  document.getElementById('blf-wallet').innerHTML=DB.wallets.map(w=>`<option value="${w.id}" ${b.walletId===w.id?'selected':''}>${esc(w.name)}</option>`).join('');
-  document.getElementById('blf-del').style.display=id?'inline-flex':'none';
-  document.getElementById('bill-modal').classList.add('open');
-}
-function saveBill(){
-  const name=document.getElementById('blf-nm').value.trim();
-  const amount=parseAmt(document.getElementById('blf-amt').value);
-  const dueDay=Math.min(31,Math.max(1,Number(document.getElementById('blf-due').value)||0));
-  if(!name||!amount||!dueDay){ toast('Nama, nominal, dan tanggal wajib diisi'); return; }
-  const id=document.getElementById('bl-edit-id').value;
-  const data={name, amount, dueDay, envId:document.getElementById('blf-env').value, walletId:document.getElementById('blf-wallet').value};
-  if(id){ Object.assign(DB.bills.find(x=>x.id===id), data); } else DB.bills.push({id:uid(), ...data, lastPaid:''});
-  save(); closeModal('bill-modal'); render(); toast('Tagihan disimpan ✓');
-}
-function deleteBill(){
-  const id=document.getElementById('bl-edit-id').value;
-  if(!id||!confirm('Hapus tagihan rutin ini?')) return;
-  DB.bills=DB.bills.filter(b=>b.id!==id);
-  save(); closeModal('bill-modal'); render(); toast('Tagihan dihapus');
-}
-
-/* ================= TXN MODAL ================= */
-let txType='out';
-function setTxType(t){
-  txType=t;
-  document.querySelectorAll('#tx-seg button').forEach(b=>b.classList.toggle('on', b.dataset.t===t));
-  document.getElementById('txf-env-wrap').style.display= t==='out'?'block':'none';
-  document.getElementById('txf-to-wrap').style.display= t==='tf'?'block':'none';
-  document.getElementById('txf-wallet-label').textContent= t==='tf'?'Dari Dompet':(t==='in'?'Masuk ke Dompet':'Dompet');
-}
-function openTxnModal(editId=''){
-  const t= editId? DB.txns.find(x=>x.id===editId) : null;
-  document.getElementById('txf-edit-id').value= t? t.id : '';
-  document.getElementById('txn-modal-title').firstChild.textContent= t? 'Edit Transaksi ' : 'Catat Transaksi ';
-  document.getElementById('txf-del').style.display= t? 'inline-flex' : 'none';
-
-  document.getElementById('txf-date').value= t? t.date : new Date().toISOString().slice(0,10);
-  document.getElementById('txf-desc').value= t? (t.desc||'') : '';
-  document.getElementById('txf-amt').value= t? Number(t.amount).toLocaleString('id-ID') : '';
-  document.getElementById('txf-env').innerHTML=DB.envelopes.map(e=>`<option value="${e.id}">${esc(e.em)} ${esc(e.name)}</option>`).join('');
-  const opts=DB.wallets.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('');
-  document.getElementById('txf-wallet').innerHTML=opts;
-  document.getElementById('txf-to').innerHTML=opts;
-  setTxType(t? t.type : 'out');
-  if(t){
-    if(t.envId) document.getElementById('txf-env').value=t.envId;
-    if(t.walletId) document.getElementById('txf-wallet').value=t.walletId;
-    if(t.toWalletId) document.getElementById('txf-to').value=t.toWalletId;
-  }
-  document.getElementById('txn-modal').classList.add('open');
-  if(!t) setTimeout(()=>document.getElementById('txf-desc').focus(),150);
-}
-function saveTxn(){
-  const date=document.getElementById('txf-date').value;
-  const amount=parseAmt(document.getElementById('txf-amt').value);
-  if(!date){ toast('Tanggal wajib diisi'); return; }
-  if(!amount){ toast('Nominal wajib diisi'); return; }
-  const walletId=document.getElementById('txf-wallet').value;
-  const editId=document.getElementById('txf-edit-id').value;
-  const t={id: editId||uid(), type:txType, date, desc:document.getElementById('txf-desc').value.trim(), amount, walletId};
-  if(txType==='out') t.envId=document.getElementById('txf-env').value;
-  if(txType==='tf'){
-    t.toWalletId=document.getElementById('txf-to').value;
-    if(t.toWalletId===walletId){ toast('Dompet asal dan tujuan sama'); return; }
-  }
-  if(editId){
-    const i=DB.txns.findIndex(x=>x.id===editId);
-    if(i>=0) DB.txns[i]=t; else DB.txns.push(t);
-  } else DB.txns.push(t);
-  save(); closeModal('txn-modal');
-  cur=new Date(Number(date.slice(0,4)), Number(date.slice(5,7))-1, 1);
-  go('txns'); toast(editId? 'Perubahan disimpan ✓' : 'Transaksi tersimpan ✓');
-}
-function delTxnFromModal(){
-  const id=document.getElementById('txf-edit-id').value;
-  if(!id||!confirm('Hapus transaksi ini?')) return;
-  DB.txns=DB.txns.filter(t=>t.id!==id);
-  save(); closeModal('txn-modal'); render(); toast('Transaksi dihapus');
-}
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); }));
-
-/* ================= DATA ================= */
-function exportData(){
-  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='amplop-backup-'+new Date().toISOString().slice(0,10)+'.json';
-  a.click(); URL.revokeObjectURL(a.href); toast('Backup diunduh ✓');
-}
-function importData(input){
-  const f=input.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=()=>{ try{
-    const d=JSON.parse(r.result);
-    if(!d.wallets||!d.envelopes){ toast('Format file tidak dikenali'); return; }
-    if(!confirm('Impor akan menimpa semua data saat ini. Lanjutkan?')) return;
-    DB=d; save(); render(); toast('Data berhasil diimpor ✓');
-  }catch(e){ toast('File JSON tidak valid'); } };
-  r.readAsText(f); input.value='';
-}
-function resetData(){
-  if(!confirm('Hapus SEMUA data dan mulai dari awal? Tindakan ini tidak bisa dibatalkan.')) return;
-  if(!confirm('Yakin? Ekspor dulu jika ingin menyimpan cadangan.')) return;
-  DB=structuredClone(seed); save(); render(); toast('Data direset');
-}
-
-/* ================= AUTH & SYNC ================= */
-function agShow(step){
-  ['email','otp','license'].forEach(s=>document.getElementById('ag-step-'+s).style.display= s===step?'block':'none');
-  agErr('');
-}
-function agErr(msg){
-  const el=document.getElementById('ag-err');
-  el.textContent=msg; el.classList.toggle('show', !!msg);
-}
-function agGate(open){ document.getElementById('auth-gate').classList.toggle('open', open); }
-
-async function sendOtp(){
-  const email=document.getElementById('ag-email').value.trim().toLowerCase();
-  if(!email.includes('@')){ agErr('Masukkan email yang valid.'); return; }
-  const btn=document.getElementById('ag-send'); btn.disabled=true; btn.textContent='Mengirim…';
-  const {error}=await sb.auth.signInWithOtp({email, options:{shouldCreateUser:true}});
-  btn.disabled=false; btn.textContent='Kirim Kode Masuk';
-  if(error){ agErr('Gagal mengirim kode: '+error.message); return; }
-  document.getElementById('ag-sent-to').textContent=email;
-  agShow('otp');
-  setTimeout(()=>document.getElementById('ag-otp').focus(),100);
-}
-async function verifyOtp(){
-  const email=document.getElementById('ag-email').value.trim().toLowerCase();
-  const token=document.getElementById('ag-otp').value.trim();
-  if(token.length<6){ agErr('Kode harus 6 digit.'); return; }
-  const btn=document.getElementById('ag-verify'); btn.disabled=true; btn.textContent='Memeriksa…';
-  const {data, error}=await sb.auth.verifyOtp({email, token, type:'email'});
-  btn.disabled=false; btn.textContent='Masuk';
-  if(error||!data.session){ agErr('Kode salah atau kedaluwarsa. Coba kirim ulang.'); return; }
-  await startApp(data.session);
-}
-async function doLogout(){
-  if(sb) await sb.auth.signOut();
-  location.reload();
-}
-
-/* --- lisensi --- */
-async function checkLicense(email, userId){
-  const flagKey='amplop_lic_'+userId;
-  try{
-    const {data, error}=await sb.from('licenses').select('email').eq('email', email).maybeSingle();
-    if(error) throw error;
-    if(data){ localStorage.setItem(flagKey,'1'); return true; }
-    localStorage.removeItem(flagKey); return false;
-  }catch(e){
-    /* offline / gangguan jaringan: pakai hasil pemeriksaan terakhir */
-    return localStorage.getItem(flagKey)==='1';
-  }
-}
-
-/* --- sinkronisasi --- */
-let pushTimer=null, dirty=false;
-function setSync(state){
-  const el=document.getElementById('sync-dot'); if(!el) return;
-  const map={ ok:'☁️ Tersimpan', syncing:'☁️ Menyimpan…', offline:'📴 Offline', local:'💾 Lokal' };
-  el.textContent=map[state]||'☁️ —';
-}
-function schedulePush(){
-  if(!CONFIGURED||!USER){ setSync('local'); return; }
-  dirty=true; setSync('syncing');
-  clearTimeout(pushTimer);
-  pushTimer=setTimeout(pushRemote, 1200);
-}
-async function pushRemote(){
-  if(!CONFIGURED||!USER||!dirty) return;
-  if(!navigator.onLine){ setSync('offline'); return; }
-  try{
-    const {error}=await sb.from('user_data').upsert({
-      user_id:USER.id, data:DB, updated_at:new Date(localT).toISOString()
-    });
-    if(error) throw error;
-    dirty=false; setSync('ok');
-  }catch(e){ setSync('offline'); }
-}
-async function pullRemote(){
-  if(!CONFIGURED||!USER) return;
-  try{
-    const {data, error}=await sb.from('user_data').select('data, updated_at').eq('user_id', USER.id).maybeSingle();
-    if(error) throw error;
-    const remoteT= data? new Date(data.updated_at).getTime() : 0;
-    if(data && remoteT>localT){ DB=data.data; persistLocal(); }
-    else if(localT>remoteT){ dirty=true; await pushRemote(); }
-    setSync('ok');
-  }catch(e){ setSync(navigator.onLine?'local':'offline'); }
-}
-window.addEventListener('online', ()=>{ if(dirty) pushRemote(); else setSync(USER?'ok':'local'); });
-window.addEventListener('offline', ()=>setSync('offline'));
-
-/* ================= BOOT ================= */
-function render(){ renderHome(); renderTxns(); renderEnv(); renderReport(); renderSettings();
-  const em=document.getElementById('st-email'); if(em) em.textContent= USER? USER.email : 'Mode lokal (Supabase belum dikonfigurasi)';
-}
-async function startApp(session){
-  USER=session.user;
-  const licensed=await checkLicense(USER.email, USER.id);
-  if(!licensed){
-    document.getElementById('ag-lic-email').textContent=USER.email;
-    agShow('license'); agGate(true); return;
-  }
-  KEY='amplop_v2_'+USER.id;
-  const firstRun=!localStorage.getItem(KEY);
-  load();
-  await pullRemote();
-  agGate(false); go('home');
-  if(firstRun && !DB.txns.length && !Object.keys(DB.allocations).length){
-    save();
-    setTimeout(()=>document.getElementById('onboard-modal').classList.add('open'), 400);
-  }
-}
-async function bootApp(){
-  if(!CONFIGURED){
-    /* mode pengembangan: tanpa Supabase, jalan lokal seperti biasa */
-    const firstRun=!localStorage.getItem(KEY);
-    load(); go('home'); setSync('local');
-    if(firstRun){ save(); setTimeout(()=>document.getElementById('onboard-modal').classList.add('open'), 400); }
-    return;
-  }
-  const {data:{session}}=await sb.auth.getSession();
-  if(session){ await startApp(session); }
-  else { load(); agShow('email'); agGate(true); }
-}
-bootApp();
-if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
-</script>
 </body>
 </html>
