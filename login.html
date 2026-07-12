@@ -213,6 +213,10 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
   border-radius:10px; padding:10px 12px; margin-top:12px}
 .ag-info.show{display:block}
 .ag-link{display:block; text-align:center; margin-top:14px; font-size:13px; color:var(--primary); font-weight:600; cursor:pointer; background:none; border:none; width:100%}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:44px}
+.pw-toggle{position:absolute; right:4px; top:50%; transform:translateY(-50%); border:none; background:none;
+  cursor:pointer; font-size:16px; color:var(--muted); padding:8px}
 #sync-dot{background:rgba(255,255,255,.13); border:none; color:#fff; height:36px; padding:0 12px;
   border-radius:99px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:5px}
 </style>
@@ -229,7 +233,10 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
       <label class="f">Email</label>
       <input class="f" type="email" id="ag-login-email" placeholder="nama@email.com" autocomplete="email">
       <label class="f">Password</label>
-      <input class="f" type="password" id="ag-login-pw" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="pw-wrap">
+        <input class="f" type="password" id="ag-login-pw" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        <button type="button" class="pw-toggle" onclick="togglePw('ag-login-pw',this)" aria-label="Tampilkan password">👁</button>
+      </div>
       <div style="margin-top:16px"><button class="btn p" id="ag-login-btn" onclick="doLogin()">Masuk</button></div>
       <button class="ag-link" onclick="agShow('register')">Belum punya akun? Daftar</button>
     </div>
@@ -239,9 +246,24 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
       <label class="f">Email</label>
       <input class="f" type="email" id="ag-reg-email" placeholder="nama@email.com" autocomplete="email">
       <label class="f">Password</label>
-      <input class="f" type="password" id="ag-reg-pw" placeholder="Minimal 6 karakter" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+      <div class="pw-wrap">
+        <input class="f" type="password" id="ag-reg-pw" placeholder="Minimal 6 karakter" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+        <button type="button" class="pw-toggle" onclick="togglePw('ag-reg-pw',this)" aria-label="Tampilkan password">👁</button>
+      </div>
       <div style="margin-top:16px"><button class="btn p" id="ag-reg-btn" onclick="doRegister()">Daftar</button></div>
       <button class="ag-link" onclick="agShow('login')">Sudah punya akun? Masuk</button>
+    </div>
+
+    <div id="ag-step-register-otp" style="display:none">
+      <p class="sub">Kode konfirmasi dikirim ke <b id="ag-reg-sent-to"></b>. Cek inbox (dan folder spam), lalu masukkan kodenya untuk menyelesaikan pendaftaran.</p>
+      <label class="f">Kode 6 Digit</label>
+      <input class="f num" id="ag-reg-otp" inputmode="numeric" maxlength="6" placeholder="••••••" style="text-align:center; letter-spacing:.4em; font-size:20px">
+      <div style="margin-top:16px"><button class="btn p" id="ag-reg-otp-btn" onclick="verifyRegisterOtp()">Konfirmasi & Masuk</button></div>
+      <div style="display:flex; gap:8px; justify-content:center; margin-top:6px">
+        <button class="ag-link" style="width:auto" onclick="resendRegisterOtp()">Kirim ulang kode</button>
+        <span style="color:var(--muted)">·</span>
+        <button class="ag-link" style="width:auto" onclick="agShow('register')">Ganti email</button>
+      </div>
     </div>
 
     <div id="ag-step-license" style="display:none">
@@ -959,7 +981,7 @@ function resetData(){
 
 /* ================= AUTH & SYNC ================= */
 function agShow(step){
-  ['login','register','license'].forEach(s=>document.getElementById('ag-step-'+s).style.display= s===step?'block':'none');
+  ['login','register','register-otp','license'].forEach(s=>document.getElementById('ag-step-'+s).style.display= s===step?'block':'none');
   agErr(''); agInfo('');
 }
 function agErr(msg){
@@ -971,6 +993,12 @@ function agInfo(msg){
   el.textContent=msg; el.classList.toggle('show', !!msg);
 }
 function agGate(open){ document.getElementById('auth-gate').classList.toggle('open', open); }
+function togglePw(id, btn){
+  const el=document.getElementById(id);
+  const show= el.type==='password';
+  el.type= show?'text':'password';
+  btn.textContent= show?'🙈':'👁';
+}
 
 async function doLogin(){
   const email=document.getElementById('ag-login-email').value.trim().toLowerCase();
@@ -983,6 +1011,8 @@ async function doLogin(){
   if(error){ agErr('Email atau password salah.'); return; }
   await startApp(data.session);
 }
+
+let pendingRegisterEmail='';
 async function doRegister(){
   const email=document.getElementById('ag-reg-email').value.trim().toLowerCase();
   const pw=document.getElementById('ag-reg-pw').value;
@@ -1000,8 +1030,27 @@ async function doRegister(){
   btn.disabled=false; btn.textContent='Daftar';
   if(error){ agErr('Gagal daftar: '+error.message); return; }
   if(data.session){ await startApp(data.session); return; }
-  agShow('login');
-  agInfo('Akun dibuat ✓ Cek email kamu untuk konfirmasi, lalu masuk di sini.');
+  pendingRegisterEmail=email;
+  document.getElementById('ag-reg-sent-to').textContent=email;
+  document.getElementById('ag-reg-otp').value='';
+  agShow('register-otp');
+  setTimeout(()=>document.getElementById('ag-reg-otp').focus(),100);
+}
+async function verifyRegisterOtp(){
+  const token=document.getElementById('ag-reg-otp').value.trim();
+  if(token.length<6){ agErr('Kode harus 6 digit.'); return; }
+  const btn=document.getElementById('ag-reg-otp-btn'); btn.disabled=true; btn.textContent='Memeriksa…';
+  const {data, error}=await sb.auth.verifyOtp({email:pendingRegisterEmail, token, type:'signup'});
+  btn.disabled=false; btn.textContent='Konfirmasi & Masuk';
+  if(error||!data.session){ agErr('Kode salah atau kedaluwarsa. Coba kirim ulang.'); return; }
+  await startApp(data.session);
+}
+async function resendRegisterOtp(){
+  if(!pendingRegisterEmail){ agShow('register'); return; }
+  agErr('');
+  const {error}=await sb.auth.resend({type:'signup', email:pendingRegisterEmail});
+  if(error){ agErr('Gagal kirim ulang: '+error.message); return; }
+  agInfo('Kode baru sudah dikirim ✓');
 }
 async function doLogout(){
   if(sb) await sb.auth.signOut();

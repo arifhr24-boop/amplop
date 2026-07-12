@@ -14,24 +14,32 @@ Versi cloud: login email + password (dengan flow Masuk/Daftar terpisah), data te
 2. Copy seluruh isi file `supabase-setup.sql` → paste → **Run**
 3. Cek di **Table Editor**: harus muncul tabel `licenses` dan `user_data`
 
-## 3. Aktifkan login email + password
+## 3. Aktifkan login email + password dengan kode OTP saat Daftar
 
 1. Buka **Authentication → Sign In / Providers → Email**: pastikan Email aktif
-2. Di **Authentication → Providers → Email**, opsi **Confirm email**:
-   - **Aktif** (default): setelah Daftar, pembeli harus klik link di email
-     konfirmasi dulu sebelum bisa login. App sudah menampilkan pesan "cek
-     email" secara otomatis setelah Daftar.
-   - **Nonaktif**: pembeli langsung masuk begitu menekan Daftar, tanpa
-     konfirmasi email. Lebih simpel tapi email tidak terverifikasi.
-3. (Opsional) Sesuaikan template **Authentication → Emails → Confirm signup**
-   agar bahasanya sesuai brand — tidak wajib diubah, defaultnya sudah berfungsi.
+2. Di halaman yang sama, opsi **Confirm email** harus **AKTIF** — ini yang
+   memaksa Supabase mengirim kode konfirmasi setiap kali ada yang Daftar.
+   Kalau opsi ini nonaktif, Daftar akan langsung membuat sesi login tanpa
+   pernah menampilkan langkah kode OTP di app.
+3. Buka **Authentication → Emails (Templates)** → template **Confirm signup**
+4. Ganti isi template agar mengirim kode 6 digit, bukan link. Contoh:
+
+```html
+<h2>Kode konfirmasi akun Amplop kamu</h2>
+<p>Masukkan kode berikut di aplikasi untuk menyelesaikan pendaftaran:</p>
+<h1>{{ .Token }}</h1>
+<p>Kode berlaku 1 jam. Abaikan email ini jika kamu tidak mendaftar.</p>
+```
+
+Bagian penting: `{{ .Token }}` — itulah kode 6 digit yang dicocokkan app
+lewat `supabase.auth.verifyOtp({ email, token, type: 'signup' })`.
 
 > ⚠️ **PENTING sebelum jualan:** email bawaan Supabase dibatasi sangat ketat
 > (hanya beberapa email per jam) dan hanya untuk development. Untuk produksi,
 > pasang SMTP sendiri di **Project Settings → Authentication → SMTP Settings**.
 > Opsi gratis yang umum: Resend (resend.com, gratis 3.000 email/bulan) atau
 > Brevo. Tanpa ini, pembeli kedua yang daftar di jam yang sama bisa tidak
-> menerima email konfirmasi.
+> menerima kode.
 
 ## 4. Sambungkan app ke Supabase
 
@@ -65,8 +73,8 @@ tanpa login — sengaja, supaya kamu bisa testing dulu.
    `email` dengan email pembeli (huruf kecil semua), kolom `note` bebas
    (misal nama/no. order) → Save
 3. Pembeli buka app → tab **Daftar** → isi email yang sama + buat password →
-   (jika Confirm email aktif) klik link konfirmasi di emailnya → lalu masuk
-   lewat tab **Masuk** ✅
+   masukkan kode 6 digit yang dikirim ke emailnya → akun otomatis aktif dan
+   langsung masuk ✅. Lain kali, cukup tab **Masuk** dengan email + password.
 
 Jika pembeli komplain "belum terdaftar sebagai pembeli" saat Daftar: hampir
 selalu karena email yang dipakai beda dengan email saat checkout. Cocokkan,
@@ -90,11 +98,13 @@ akan bisa masuk lagi setelah sesi loginnya berakhir (dicek ulang tiap login).
 ## Checklist sebelum launch
 
 - [ ] SQL sudah dijalankan, dua tabel muncul
-- [ ] Opsi Confirm email sudah disesuaikan (aktif/nonaktif, sesuai keinginan)
+- [ ] Opsi Confirm email **AKTIF** (wajib, supaya kode OTP saat Daftar terkirim)
+- [ ] Template Confirm signup sudah berisi `{{ .Token }}`
 - [ ] SMTP custom terpasang (Resend/Brevo)
 - [ ] URL + anon key sudah ditempel di login.html
 - [ ] Site URL di Supabase diisi domain app
-- [ ] Tes end-to-end: tambah email sendiri ke `licenses` → Daftar → (konfirmasi
-      email jika perlu) → Masuk → catat transaksi di HP → buka di laptop →
+- [ ] Tes end-to-end: tambah email sendiri ke `licenses` → Daftar → masukkan
+      kode OTP → langsung masuk → catat transaksi di HP → buka di laptop →
       data muncul
 - [ ] Tes Daftar dengan email yang TIDAK ada di `licenses` → harus ditolak
+- [ ] Tes Masuk dengan password salah → harus muncul peringatan
