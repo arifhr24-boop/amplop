@@ -1,6 +1,6 @@
 # Panduan Setup Amplop Cloud
 
-Versi cloud: login email dengan kode OTP, data tersinkron otomatis antar perangkat, lisensi menempel di akun pembeli.
+Versi cloud: login email + password (dengan flow Masuk/Daftar terpisah), data tersinkron otomatis antar perangkat, lisensi menempel di akun pembeli.
 
 ## 1. Buat project Supabase (gratis)
 
@@ -14,33 +14,30 @@ Versi cloud: login email dengan kode OTP, data tersinkron otomatis antar perangk
 2. Copy seluruh isi file `supabase-setup.sql` → paste → **Run**
 3. Cek di **Table Editor**: harus muncul tabel `licenses` dan `user_data`
 
-## 3. Aktifkan login kode OTP
+## 3. Aktifkan login email + password
 
 1. Buka **Authentication → Sign In / Providers → Email**: pastikan Email aktif
-2. Buka **Authentication → Emails (Templates)** → template **Magic Link**
-3. Ganti isi template agar mengirim kode, bukan link. Contoh:
-
-```html
-<h2>Kode masuk Amplop kamu</h2>
-<p>Masukkan kode berikut di aplikasi:</p>
-<h1>{{ .Token }}</h1>
-<p>Kode berlaku 1 jam. Abaikan email ini jika kamu tidak meminta kode.</p>
-```
-
-Bagian penting: `{{ .Token }}` — itulah kode 6 digitnya.
+2. Di **Authentication → Providers → Email**, opsi **Confirm email**:
+   - **Aktif** (default): setelah Daftar, pembeli harus klik link di email
+     konfirmasi dulu sebelum bisa login. App sudah menampilkan pesan "cek
+     email" secara otomatis setelah Daftar.
+   - **Nonaktif**: pembeli langsung masuk begitu menekan Daftar, tanpa
+     konfirmasi email. Lebih simpel tapi email tidak terverifikasi.
+3. (Opsional) Sesuaikan template **Authentication → Emails → Confirm signup**
+   agar bahasanya sesuai brand — tidak wajib diubah, defaultnya sudah berfungsi.
 
 > ⚠️ **PENTING sebelum jualan:** email bawaan Supabase dibatasi sangat ketat
 > (hanya beberapa email per jam) dan hanya untuk development. Untuk produksi,
 > pasang SMTP sendiri di **Project Settings → Authentication → SMTP Settings**.
 > Opsi gratis yang umum: Resend (resend.com, gratis 3.000 email/bulan) atau
-> Brevo. Tanpa ini, pembeli kedua yang login di jam yang sama bisa tidak
-> menerima kode.
+> Brevo. Tanpa ini, pembeli kedua yang daftar di jam yang sama bisa tidak
+> menerima email konfirmasi.
 
 ## 4. Sambungkan app ke Supabase
 
 1. Di dashboard: **Project Settings → API**
 2. Salin **Project URL** dan **anon public key**
-3. Buka `index.html`, cari bagian paling atas `<script>`:
+3. Buka `login.html`, cari bagian paling atas `<script>`:
 
 ```js
 const SUPABASE_URL='GANTI_DENGAN_PROJECT_URL';
@@ -67,14 +64,16 @@ tanpa login — sengaja, supaya kamu bisa testing dulu.
 2. Buka Supabase → **Table Editor → licenses → Insert row** → isi kolom
    `email` dengan email pembeli (huruf kecil semua), kolom `note` bebas
    (misal nama/no. order) → Save
-3. Pembeli buka app → login dengan email yang sama → dapat kode OTP → masuk ✅
+3. Pembeli buka app → tab **Daftar** → isi email yang sama + buat password →
+   (jika Confirm email aktif) klik link konfirmasi di emailnya → lalu masuk
+   lewat tab **Masuk** ✅
 
-Jika pembeli komplain "email belum terdaftar": hampir selalu karena email yang
-dipakai login beda dengan email saat checkout. Cocokkan, lalu tambahkan email
-yang benar ke tabel `licenses`.
+Jika pembeli komplain "belum terdaftar sebagai pembeli" saat Daftar: hampir
+selalu karena email yang dipakai beda dengan email saat checkout. Cocokkan,
+lalu tambahkan email yang benar ke tabel `licenses`.
 
 Untuk refund/blokir: hapus baris emailnya dari tabel `licenses` — dia tidak
-akan bisa masuk lagi setelah sesi loginnya berakhir.
+akan bisa masuk lagi setelah sesi loginnya berakhir (dicek ulang tiap login).
 
 ## 7. Cara kerja sinkronisasi (untuk kamu pahami)
 
@@ -91,10 +90,11 @@ akan bisa masuk lagi setelah sesi loginnya berakhir.
 ## Checklist sebelum launch
 
 - [ ] SQL sudah dijalankan, dua tabel muncul
-- [ ] Template email Magic Link sudah berisi `{{ .Token }}`
+- [ ] Opsi Confirm email sudah disesuaikan (aktif/nonaktif, sesuai keinginan)
 - [ ] SMTP custom terpasang (Resend/Brevo)
-- [ ] URL + anon key sudah ditempel di index.html
+- [ ] URL + anon key sudah ditempel di login.html
 - [ ] Site URL di Supabase diisi domain app
-- [ ] Tes end-to-end: tambah email sendiri ke `licenses` → login → catat
-      transaksi di HP → buka di laptop → data muncul
-- [ ] Tes email yang TIDAK ada di `licenses` → harus ditolak
+- [ ] Tes end-to-end: tambah email sendiri ke `licenses` → Daftar → (konfirmasi
+      email jika perlu) → Masuk → catat transaksi di HP → buka di laptop →
+      data muncul
+- [ ] Tes Daftar dengan email yang TIDAK ada di `licenses` → harus ditolak

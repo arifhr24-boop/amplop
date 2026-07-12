@@ -209,6 +209,9 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
 .ag-err{display:none; background:var(--red-soft); color:var(--red); font-size:13px; font-weight:600;
   border-radius:10px; padding:10px 12px; margin-top:12px}
 .ag-err.show{display:block}
+.ag-info{display:none; background:var(--green-soft); color:var(--green); font-size:13px; font-weight:600;
+  border-radius:10px; padding:10px 12px; margin-top:12px}
+.ag-info.show{display:block}
 .ag-link{display:block; text-align:center; margin-top:14px; font-size:13px; color:var(--primary); font-weight:600; cursor:pointer; background:none; border:none; width:100%}
 #sync-dot{background:rgba(255,255,255,.13); border:none; color:#fff; height:36px; padding:0 12px;
   border-radius:99px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:5px}
@@ -221,19 +224,24 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
   <div class="ag-card">
     <div class="logo">✉️ Amplop<em>.</em></div>
 
-    <div id="ag-step-email">
-      <p class="sub">Masuk dengan email yang kamu pakai saat membeli. Kami kirim kode 6 digit — tanpa password.</p>
+    <div id="ag-step-login">
+      <p class="sub">Masuk ke akun Amplop kamu.</p>
       <label class="f">Email</label>
-      <input class="f" type="email" id="ag-email" placeholder="nama@email.com" autocomplete="email">
-      <div style="margin-top:16px"><button class="btn p" id="ag-send" onclick="sendOtp()">Kirim Kode Masuk</button></div>
+      <input class="f" type="email" id="ag-login-email" placeholder="nama@email.com" autocomplete="email">
+      <label class="f">Password</label>
+      <input class="f" type="password" id="ag-login-pw" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <div style="margin-top:16px"><button class="btn p" id="ag-login-btn" onclick="doLogin()">Masuk</button></div>
+      <button class="ag-link" onclick="agShow('register')">Belum punya akun? Daftar</button>
     </div>
 
-    <div id="ag-step-otp" style="display:none">
-      <p class="sub">Kode dikirim ke <b id="ag-sent-to"></b>. Cek inbox (dan folder spam).</p>
-      <label class="f">Kode 6 Digit</label>
-      <input class="f num" id="ag-otp" inputmode="numeric" maxlength="6" placeholder="••••••" style="text-align:center; letter-spacing:.4em; font-size:20px">
-      <div style="margin-top:16px"><button class="btn p" id="ag-verify" onclick="verifyOtp()">Masuk</button></div>
-      <button class="ag-link" onclick="agShow('email')">Ganti email / kirim ulang</button>
+    <div id="ag-step-register" style="display:none">
+      <p class="sub">Daftar dengan email yang kamu pakai saat membeli.</p>
+      <label class="f">Email</label>
+      <input class="f" type="email" id="ag-reg-email" placeholder="nama@email.com" autocomplete="email">
+      <label class="f">Password</label>
+      <input class="f" type="password" id="ag-reg-pw" placeholder="Minimal 6 karakter" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+      <div style="margin-top:16px"><button class="btn p" id="ag-reg-btn" onclick="doRegister()">Daftar</button></div>
+      <button class="ag-link" onclick="agShow('login')">Sudah punya akun? Masuk</button>
     </div>
 
     <div id="ag-step-license" style="display:none">
@@ -243,6 +251,7 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
     </div>
 
     <div class="ag-err" id="ag-err"></div>
+    <div class="ag-info" id="ag-info"></div>
   </div>
 </div>
 
@@ -950,35 +959,49 @@ function resetData(){
 
 /* ================= AUTH & SYNC ================= */
 function agShow(step){
-  ['email','otp','license'].forEach(s=>document.getElementById('ag-step-'+s).style.display= s===step?'block':'none');
-  agErr('');
+  ['login','register','license'].forEach(s=>document.getElementById('ag-step-'+s).style.display= s===step?'block':'none');
+  agErr(''); agInfo('');
 }
 function agErr(msg){
   const el=document.getElementById('ag-err');
   el.textContent=msg; el.classList.toggle('show', !!msg);
 }
+function agInfo(msg){
+  const el=document.getElementById('ag-info');
+  el.textContent=msg; el.classList.toggle('show', !!msg);
+}
 function agGate(open){ document.getElementById('auth-gate').classList.toggle('open', open); }
 
-async function sendOtp(){
-  const email=document.getElementById('ag-email').value.trim().toLowerCase();
+async function doLogin(){
+  const email=document.getElementById('ag-login-email').value.trim().toLowerCase();
+  const pw=document.getElementById('ag-login-pw').value;
   if(!email.includes('@')){ agErr('Masukkan email yang valid.'); return; }
-  const btn=document.getElementById('ag-send'); btn.disabled=true; btn.textContent='Mengirim…';
-  const {error}=await sb.auth.signInWithOtp({email, options:{shouldCreateUser:true}});
-  btn.disabled=false; btn.textContent='Kirim Kode Masuk';
-  if(error){ agErr('Gagal mengirim kode: '+error.message); return; }
-  document.getElementById('ag-sent-to').textContent=email;
-  agShow('otp');
-  setTimeout(()=>document.getElementById('ag-otp').focus(),100);
-}
-async function verifyOtp(){
-  const email=document.getElementById('ag-email').value.trim().toLowerCase();
-  const token=document.getElementById('ag-otp').value.trim();
-  if(token.length<6){ agErr('Kode harus 6 digit.'); return; }
-  const btn=document.getElementById('ag-verify'); btn.disabled=true; btn.textContent='Memeriksa…';
-  const {data, error}=await sb.auth.verifyOtp({email, token, type:'email'});
+  if(!pw){ agErr('Masukkan password.'); return; }
+  const btn=document.getElementById('ag-login-btn'); btn.disabled=true; btn.textContent='Memeriksa…';
+  const {data, error}=await sb.auth.signInWithPassword({email, password:pw});
   btn.disabled=false; btn.textContent='Masuk';
-  if(error||!data.session){ agErr('Kode salah atau kedaluwarsa. Coba kirim ulang.'); return; }
+  if(error){ agErr('Email atau password salah.'); return; }
   await startApp(data.session);
+}
+async function doRegister(){
+  const email=document.getElementById('ag-reg-email').value.trim().toLowerCase();
+  const pw=document.getElementById('ag-reg-pw').value;
+  if(!email.includes('@')){ agErr('Masukkan email yang valid.'); return; }
+  if(pw.length<6){ agErr('Password minimal 6 karakter.'); return; }
+  const btn=document.getElementById('ag-reg-btn'); btn.disabled=true; btn.textContent='Memeriksa…';
+  const licensed=await checkLicenseByEmail(email);
+  if(!licensed){
+    btn.disabled=false; btn.textContent='Daftar';
+    document.getElementById('ag-lic-email').textContent=email;
+    agShow('license');
+    return;
+  }
+  const {data, error}=await sb.auth.signUp({email, password:pw});
+  btn.disabled=false; btn.textContent='Daftar';
+  if(error){ agErr('Gagal daftar: '+error.message); return; }
+  if(data.session){ await startApp(data.session); return; }
+  agShow('login');
+  agInfo('Akun dibuat ✓ Cek email kamu untuk konfirmasi, lalu masuk di sini.');
 }
 async function doLogout(){
   if(sb) await sb.auth.signOut();
@@ -986,12 +1009,19 @@ async function doLogout(){
 }
 
 /* --- lisensi --- */
+async function queryLicense(email){
+  const {data, error}=await sb.from('licenses').select('email').eq('email', email).maybeSingle();
+  if(error) throw error;
+  return !!data;
+}
+async function checkLicenseByEmail(email){
+  try{ return await queryLicense(email); }catch(e){ return false; }
+}
 async function checkLicense(email, userId){
   const flagKey='amplop_lic_'+userId;
   try{
-    const {data, error}=await sb.from('licenses').select('email').eq('email', email).maybeSingle();
-    if(error) throw error;
-    if(data){ localStorage.setItem(flagKey,'1'); return true; }
+    const licensed=await queryLicense(email);
+    if(licensed){ localStorage.setItem(flagKey,'1'); return true; }
     localStorage.removeItem(flagKey); return false;
   }catch(e){
     /* offline / gangguan jaringan: pakai hasil pemeriksaan terakhir */
@@ -1068,7 +1098,7 @@ async function bootApp(){
   }
   const {data:{session}}=await sb.auth.getSession();
   if(session){ await startApp(session); }
-  else { load(); agShow('email'); agGate(true); }
+  else { load(); agShow('login'); agGate(true); }
 }
 bootApp();
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
