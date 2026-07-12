@@ -2,7 +2,7 @@
   "name": "Amplop — Atur Uang Sistem Amplop",
   "short_name": "Amplop",
   "description": "Budgeting sistem amplop: isi amplop di awal bulan, catat pengeluaran, dan tahu berapa yang aman dipakai per hari.",
-  "start_url": "./index.html",
+  "start_url": "./login.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
