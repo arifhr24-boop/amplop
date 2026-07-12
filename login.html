@@ -183,6 +183,34 @@ nav.bottom button.on{color:var(--primary)}
 nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kraft); color:#fff;
   font-size:26px; display:grid; place-items:center; margin-top:-26px;
   box-shadow:0 6px 16px rgba(201,130,46,.4); border:4px solid var(--bg)}
+nav.bottom .fab-label{display:none}
+
+/* ===== tampilan desktop (browser biasa, BUKAN pwa terinstall) =====
+   PWA terinstall (display-mode:standalone) tetap pakai tampilan mobile di atas. */
+@media (min-width:900px) and (display-mode:browser){
+  body{padding-bottom:0}
+  main{margin-left:232px; max-width:820px; padding:28px 36px 48px}
+  header.app{padding-left:calc(232px + 18px)}
+  nav.bottom{
+    top:0; bottom:0; left:0; right:auto; width:232px; height:100vh;
+    flex-direction:column; align-items:stretch; justify-content:flex-start;
+    gap:4px; padding:24px 16px; border-top:none; border-right:1px solid var(--line); z-index:15;
+  }
+  nav.bottom button{
+    flex-direction:row; justify-content:flex-start; gap:12px; width:auto;
+    padding:11px 14px; border-radius:12px; font-size:14px;
+  }
+  nav.bottom button:hover{background:var(--paper)}
+  nav.bottom button.on{background:var(--paper)}
+  nav.bottom button .i{font-size:18px}
+  nav.bottom .fab{
+    order:-1; width:auto; height:auto; margin:0 0 12px; border:none; border-radius:12px;
+    box-shadow:none; font-size:14px; flex-direction:row; justify-content:flex-start; gap:12px;
+    padding:12px 14px;
+  }
+  nav.bottom .fab .i{font-size:18px}
+  nav.bottom .fab-label{display:inline}
+}
 
 .modal-bg{position:fixed; inset:0; background:rgba(20,27,48,.5); z-index:40; display:none; align-items:flex-end; justify-content:center}
 .modal-bg.open{display:flex}
@@ -204,6 +232,8 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
   display:none; align-items:center; justify-content:center; padding:24px}
 #auth-gate.open{display:flex}
 .ag-card{background:var(--card); border-radius:22px; padding:28px 24px; width:100%; max-width:400px; box-shadow:0 30px 60px rgba(0,0,0,.3)}
+.ag-back{display:inline-block; font-size:12.5px; font-weight:600; color:var(--muted); text-decoration:none; margin-bottom:14px}
+.ag-back:hover{color:var(--primary)}
 .ag-card .logo{font-family:'Bricolage Grotesque'; font-weight:800; font-size:24px; text-align:center}
 .ag-card .logo em{font-style:normal; color:var(--kraft)}
 .ag-card p.sub{font-size:13.5px; color:var(--muted); text-align:center; margin-top:6px}
@@ -227,6 +257,7 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
 <!-- ============ GERBANG LOGIN ============ -->
 <div id="auth-gate">
   <div class="ag-card">
+    <a href="index.html" class="ag-back">← Kembali ke beranda</a>
     <div class="logo">✉️ Amplop<em>.</em></div>
 
     <div id="ag-step-login">
@@ -436,7 +467,7 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
 <nav class="bottom">
   <button id="nav-home" onclick="go('home')"><span class="i">🏠</span>Beranda</button>
   <button id="nav-txns" onclick="go('txns')"><span class="i">🧾</span>Transaksi</button>
-  <button class="fab" onclick="openTxnModal()" aria-label="Catat">＋</button>
+  <button class="fab" onclick="openTxnModal()" aria-label="Catat"><span class="i">＋</span><span class="fab-label">Catat Transaksi</span></button>
   <button id="nav-env" onclick="go('env')"><span class="i">✉️</span>Amplop</button>
   <button id="nav-report" onclick="go('report')"><span class="i">📊</span>Laporan</button>
 </nav>
@@ -1062,9 +1093,13 @@ async function doRegister(){
     return;
   }
   const {data, error}=await sb.auth.signUp({email, password:pw});
+  if(error){ btn.disabled=false; btn.textContent='Daftar'; agErr(authErrorMessage(error)); return; }
+  /* Selalu minta kode verifikasi terpisah di sini, TIDAK bergantung pada
+     opsi "Confirm email" Supabase — supaya akun tidak pernah langsung
+     aktif tanpa pemilik emailnya membuktikan kepemilikan email itu. */
+  const {error: otpErr} = await sb.auth.signInWithOtp({email, options:{shouldCreateUser:false}});
   btn.disabled=false; btn.textContent='Daftar';
-  if(error){ agErr(authErrorMessage(error)); return; }
-  if(data.session){ await startApp(data.session); return; }
+  if(otpErr){ agErr(authErrorMessage(otpErr)); return; }
   pendingRegisterEmail=email;
   document.getElementById('ag-reg-sent-to').textContent=email;
   document.getElementById('ag-reg-otp').value='';
@@ -1075,7 +1110,7 @@ async function verifyRegisterOtp(){
   const token=document.getElementById('ag-reg-otp').value.trim();
   if(token.length<6){ agErr('Kode harus 6 digit.'); return; }
   const btn=document.getElementById('ag-reg-otp-btn'); btn.disabled=true; btn.textContent='Memeriksa…';
-  const {data, error}=await sb.auth.verifyOtp({email:pendingRegisterEmail, token, type:'signup'});
+  const {data, error}=await sb.auth.verifyOtp({email:pendingRegisterEmail, token, type:'email'});
   btn.disabled=false; btn.textContent='Konfirmasi & Masuk';
   if(error){ agErr(authErrorMessage(error)); return; }
   if(!data.session){ agErr('Kode salah atau kedaluwarsa. Coba kirim ulang.'); return; }
@@ -1084,7 +1119,7 @@ async function verifyRegisterOtp(){
 async function resendRegisterOtp(){
   if(!pendingRegisterEmail){ agShow('register'); return; }
   agErr('');
-  const {error}=await sb.auth.resend({type:'signup', email:pendingRegisterEmail});
+  const {error}=await sb.auth.signInWithOtp({email:pendingRegisterEmail, options:{shouldCreateUser:false}});
   if(error){ agErr(authErrorMessage(error)); return; }
   agInfo('Kode baru sudah dikirim ✓');
 }

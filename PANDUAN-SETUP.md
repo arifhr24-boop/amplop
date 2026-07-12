@@ -17,12 +17,8 @@ Versi cloud: login email + password (dengan flow Masuk/Daftar terpisah), data te
 ## 3. Aktifkan login email + password dengan kode OTP saat Daftar
 
 1. Buka **Authentication → Sign In / Providers → Email**: pastikan Email aktif
-2. Di halaman yang sama, opsi **Confirm email** harus **AKTIF** — ini yang
-   memaksa Supabase mengirim kode konfirmasi setiap kali ada yang Daftar.
-   Kalau opsi ini nonaktif, Daftar akan langsung membuat sesi login tanpa
-   pernah menampilkan langkah kode OTP di app.
-3. Buka **Authentication → Emails (Templates)** → template **Confirm signup**
-4. Ganti isi template agar mengirim kode 6 digit, bukan link. Contoh:
+2. Buka **Authentication → Emails (Templates)** → template **Magic Link**
+3. Ganti isi template agar mengirim kode 6 digit, bukan link. Contoh:
 
 ```html
 <h2>Kode konfirmasi akun Amplop kamu</h2>
@@ -32,7 +28,13 @@ Versi cloud: login email + password (dengan flow Masuk/Daftar terpisah), data te
 ```
 
 Bagian penting: `{{ .Token }}` — itulah kode 6 digit yang dicocokkan app
-lewat `supabase.auth.verifyOtp({ email, token, type: 'signup' })`.
+lewat `supabase.auth.verifyOtp({ email, token, type: 'email' })`.
+
+Catatan: app sengaja **tidak** bergantung pada opsi **Confirm email**
+(boleh aktif atau nonaktif, terserah) — setelah `signUp()`, app selalu
+memaksa langkah kode OTP terpisah lewat `signInWithOtp()`/template
+**Magic Link** di atas, jadi akun tidak akan pernah langsung aktif tanpa
+pemilik emailnya memasukkan kode, apa pun pengaturan Confirm email-nya.
 
 > ⚠️ **PENTING sebelum jualan:** email bawaan Supabase dibatasi sangat ketat
 > (hanya beberapa email per jam) dan hanya untuk development. Untuk produksi,
@@ -128,8 +130,8 @@ ikon 🛡️ muncul di pojok kanan atas header → klik untuk buka `admin.html`.
 ## Checklist sebelum launch
 
 - [ ] SQL sudah dijalankan, dua tabel muncul
-- [ ] Opsi Confirm email **AKTIF** (wajib, supaya kode OTP saat Daftar terkirim)
-- [ ] Template Confirm signup sudah berisi `{{ .Token }}`
+- [ ] Template **Magic Link** sudah berisi `{{ .Token }}` (dipakai untuk kode
+      OTP saat Daftar — opsi Confirm email boleh aktif/nonaktif, tidak berpengaruh)
 - [ ] SMTP custom terpasang (Resend/Brevo)
 - [ ] URL + anon key sudah ditempel di login.html
 - [ ] Site URL di Supabase diisi domain app
