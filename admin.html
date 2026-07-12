@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#232F66">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin — Amplop</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#F5F3EE; --card:#FFFFFF; --ink:#1C2740; --muted:#67708A;
+  --primary:#3A4FA0; --deep:#232F66; --paper:#EDE9DF;
+  --green:#2E9E6B; --green-soft:#E2F3EA;
+  --red:#D14B44; --red-soft:#FAE8E6;
+  --line:#E7E3DA;
+  --r:14px; --shadow:0 1px 3px rgba(28,39,64,.07), 0 8px 22px rgba(28,39,64,.05);
+}
+*{box-sizing:border-box; margin:0; padding:0}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--ink); font-size:14.5px}
+h1,h2,h3{font-family:'Bricolage Grotesque','Inter',sans-serif; letter-spacing:-.02em}
+.wrap{max-width:1000px; margin:0 auto; padding:20px 16px 60px}
+
+header{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px}
+header .logo{font-weight:800; font-size:19px; display:flex; align-items:center; gap:6px}
+header .logo em{font-style:normal; color:#C9822E}
+.btn{display:inline-flex; align-items:center; gap:6px; border:none; cursor:pointer; border-radius:10px;
+  padding:9px 14px; font:inherit; font-weight:700; font-size:13.5px}
+.btn.p{background:var(--primary); color:#fff}
+.btn.ghost{background:var(--paper); color:var(--ink)}
+.btn.dngr{background:var(--red-soft); color:var(--red)}
+.btn.sm{padding:6px 10px; font-size:12.5px; border-radius:8px}
+.btn:disabled{opacity:.5; cursor:not-allowed}
+
+/* login gate */
+#gate{min-height:70vh; display:flex; align-items:center; justify-content:center}
+.gate-card{background:var(--card); border-radius:18px; padding:26px; width:100%; max-width:360px; box-shadow:var(--shadow)}
+.gate-card h1{font-size:20px; text-align:center; margin-bottom:4px}
+.gate-card p{font-size:13px; color:var(--muted); text-align:center; margin-bottom:16px}
+label{display:block; font-size:12px; font-weight:700; color:var(--muted); margin:10px 0 5px}
+input{width:100%; padding:11px 12px; border:1.5px solid var(--line); border-radius:10px; font:inherit; font-size:14.5px}
+input:focus{outline:none; border-color:var(--primary)}
+.err{display:none; background:var(--red-soft); color:var(--red); font-size:13px; font-weight:600;
+  border-radius:10px; padding:10px 12px; margin-top:12px}
+.err.show{display:block}
+
+/* table */
+.card{background:var(--card); border-radius:var(--r); box-shadow:var(--shadow); padding:18px; overflow-x:auto}
+table{width:100%; border-collapse:collapse; font-size:13px; white-space:nowrap}
+th{text-align:left; font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;
+  letter-spacing:.05em; padding:8px 10px; border-bottom:1px solid var(--line)}
+td{padding:10px; border-bottom:1px solid var(--line); vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block; padding:3px 9px; border-radius:99px; font-size:11.5px; font-weight:700}
+.badge.ok{background:var(--green-soft); color:var(--green)}
+.badge.no{background:var(--red-soft); color:var(--red)}
+.actions{display:flex; gap:6px; flex-wrap:wrap}
+.empty{text-align:center; color:var(--muted); padding:30px}
+.muted{color:var(--muted); font-size:12px}
+
+/* modal */
+.modal-bg{position:fixed; inset:0; background:rgba(20,27,48,.5); z-index:40; display:none; align-items:center; justify-content:center; padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--card); width:100%; max-width:380px; border-radius:16px; padding:20px}
+.modal h3{font-size:16px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center}
+.modal h3 button{border:none; background:var(--paper); width:28px; height:28px; border-radius:50%; font-size:13px; cursor:pointer}
+.modal .sub{font-size:12.5px; color:var(--muted); margin-bottom:10px}
+.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:var(--deep); color:#fff;
+  font-size:13px; font-weight:600; padding:10px 18px; border-radius:99px; z-index:60; opacity:0; pointer-events:none; transition:opacity .25s}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-card">
+    <h1>🛡️ Admin Amplop</h1>
+    <p>Khusus akun admin. Masuk dengan email &amp; password admin.</p>
+    <label>Email</label>
+    <input type="email" id="ad-email" autocomplete="email">
+    <label>Password</label>
+    <input type="password" id="ad-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')adLogin()">
+    <div style="margin-top:14px"><button class="btn p" style="width:100%; justify-content:center" id="ad-login-btn" onclick="adLogin()">Masuk</button></div>
+    <div class="err" id="ad-err"></div>
+  </div>
+</div>
+
+<div id="panel" style="display:none">
+  <div class="wrap">
+    <header>
+      <div class="logo">✉️ Amplop<em>.</em> — Admin</div>
+      <div style="display:flex; gap:8px">
+        <a class="btn ghost" href="login.html">← Ke App</a>
+        <button class="btn ghost" onclick="adLogout()">Keluar</button>
+      </div>
+    </header>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+        <h2 style="font-size:15px">Pengguna Terdaftar</h2>
+        <button class="btn ghost sm" onclick="loadUsers()">↻ Muat ulang</button>
+      </div>
+      <div id="users-wrap"><div class="empty">Memuat…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- edit modal -->
+<div class="modal-bg" id="edit-modal"><div class="modal">
+  <h3>Edit Pengguna <button onclick="closeModal()">✕</button></h3>
+  <p class="sub" id="edit-sub"></p>
+  <input type="hidden" id="edit-id">
+  <label>Email</label>
+  <input type="email" id="edit-email">
+  <label>Password Baru <span class="muted">(kosongkan jika tidak diubah)</span></label>
+  <input type="password" id="edit-pw" placeholder="Minimal 6 karakter">
+  <div style="margin-top:16px; display:flex; gap:8px">
+    <button class="btn p" style="flex:1" onclick="saveEdit()">Simpan</button>
+    <button class="btn dngr" onclick="deleteUser()">Hapus</button>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://pmnfsvkthvlvlidhlmes.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_MrR16vXo0iwYPS6evo_FzA_-H-26aLK';
+const ADMIN_EMAIL='arifhr24@gmail.com';
+const sb=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let usersCache=[];
+
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2400); }
+function adErr(msg){ const el=document.getElementById('ad-err'); el.textContent=msg; el.classList.toggle('show', !!msg); }
+function fmtDate(s){ if(!s) return '—'; const d=new Date(s); return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}); }
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function adLogin(){
+  const email=document.getElementById('ad-email').value.trim().toLowerCase();
+  const pw=document.getElementById('ad-pw').value;
+  if(email!==ADMIN_EMAIL){ adErr('Email ini tidak punya akses admin.'); return; }
+  const btn=document.getElementById('ad-login-btn'); btn.disabled=true; btn.textContent='Memeriksa…';
+  const {data, error}=await sb.auth.signInWithPassword({email, password:pw});
+  btn.disabled=false; btn.textContent='Masuk';
+  if(error){ adErr('Email atau password salah.'); return; }
+  showPanel();
+}
+async function adLogout(){ await sb.auth.signOut(); location.reload(); }
+
+async function callApi(action, payload){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){ toast('Sesi berakhir, silakan masuk ulang'); location.reload(); return null; }
+  const res=await fetch('/api/admin', {
+    method:'POST',
+    headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+session.access_token},
+    body: JSON.stringify({action, payload})
+  });
+  const json=await res.json().catch(()=>({}));
+  if(!res.ok){ toast(json.error||'Gagal memproses'); return null; }
+  return json;
+}
+
+function showPanel(){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('panel').style.display='block';
+  loadUsers();
+}
+
+async function loadUsers(){
+  const wrap=document.getElementById('users-wrap');
+  wrap.innerHTML='<div class="empty">Memuat…</div>';
+  const res=await callApi('list');
+  if(!res) { wrap.innerHTML='<div class="empty">Gagal memuat data.</div>'; return; }
+  usersCache=res.users;
+  if(!usersCache.length){ wrap.innerHTML='<div class="empty">Belum ada pengguna terdaftar.</div>'; return; }
+  wrap.innerHTML=`<table><thead><tr>
+    <th>Email</th><th>Daftar</th><th>Konfirmasi</th><th>Lisensi</th><th>Login Terakhir</th><th>Aksi</th>
+  </tr></thead><tbody>${usersCache.map(u=>`
+    <tr>
+      <td>${esc(u.email)}</td>
+      <td>${fmtDate(u.created_at)}</td>
+      <td>${u.confirmed_at? '<span class="badge ok">Ya</span>':'<span class="badge no">Belum</span>'}</td>
+      <td>${u.licensed? '<span class="badge ok">Pembeli</span>':'<span class="badge no">Tidak ada</span>'}</td>
+      <td>${fmtDate(u.last_sign_in_at)}</td>
+      <td class="actions">
+        <button class="btn ghost sm" onclick="openEdit('${u.id}')">Edit</button>
+        <button class="btn ghost sm" onclick="sendReset('${esc(u.email)}')">Kirim Link Reset</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function openEdit(id){
+  const u=usersCache.find(x=>x.id===id); if(!u) return;
+  document.getElementById('edit-id').value=u.id;
+  document.getElementById('edit-email').value=u.email;
+  document.getElementById('edit-pw').value='';
+  document.getElementById('edit-sub').textContent='Daftar sejak '+fmtDate(u.created_at);
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeModal(){ document.getElementById('edit-modal').classList.remove('open'); }
+
+async function saveEdit(){
+  const id=document.getElementById('edit-id').value;
+  const email=document.getElementById('edit-email').value.trim().toLowerCase();
+  const pw=document.getElementById('edit-pw').value;
+  const original=usersCache.find(x=>x.id===id);
+  if(email && email!==original.email){
+    const r=await callApi('updateEmail', {id, email});
+    if(!r) return;
+  }
+  if(pw){
+    if(pw.length<6){ toast('Password minimal 6 karakter'); return; }
+    const r=await callApi('updatePassword', {id, password:pw});
+    if(!r) return;
+  }
+  toast('Perubahan disimpan ✓');
+  closeModal(); loadUsers();
+}
+async function deleteUser(){
+  const id=document.getElementById('edit-id').value;
+  const original=usersCache.find(x=>x.id===id);
+  if(!confirm('Hapus akun '+original.email+'? Semua data appnya ikut terhapus dan tidak bisa dibatalkan.')) return;
+  const r=await callApi('delete', {id});
+  if(!r) return;
+  toast('Akun dihapus'); closeModal(); loadUsers();
+}
+async function sendReset(email){
+  if(!confirm('Kirim email link reset password ke '+email+'?')) return;
+  const r=await callApi('sendReset', {email});
+  if(!r) return;
+  toast('Link reset terkirim ✓');
+}
+document.getElementById('edit-modal').addEventListener('click', e=>{ if(e.target.id==='edit-modal') closeModal(); });
+
+(async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session && (session.user.email||'').toLowerCase()===ADMIN_EMAIL){ showPanel(); }
+})();
+</script>
+</body>
+</html>

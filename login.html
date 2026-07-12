@@ -272,6 +272,16 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
       <div style="margin-top:16px"><button class="btn ghost" style="width:100%" onclick="doLogout()">Coba email lain</button></div>
     </div>
 
+    <div id="ag-step-recovery" style="display:none">
+      <p class="sub">Buat password baru untuk akunmu.</p>
+      <label class="f">Password Baru</label>
+      <div class="pw-wrap">
+        <input class="f" type="password" id="ag-rec-pw" placeholder="Minimal 6 karakter" autocomplete="new-password" onkeydown="if(event.key==='Enter')saveRecoveryPw()">
+        <button type="button" class="pw-toggle" onclick="togglePw('ag-rec-pw',this)" aria-label="Tampilkan password">👁</button>
+      </div>
+      <div style="margin-top:16px"><button class="btn p" id="ag-rec-btn" onclick="saveRecoveryPw()">Simpan Password Baru</button></div>
+    </div>
+
     <div class="ag-err" id="ag-err"></div>
     <div class="ag-info" id="ag-info"></div>
   </div>
@@ -281,6 +291,7 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
   <h1>✉️ Amplop<em>.</em></h1>
   <div style="display:flex; gap:8px; align-items:center">
     <span id="sync-dot" title="Status sinkronisasi">☁️ —</span>
+    <button class="gear" id="admin-btn" style="display:none" onclick="location.href='admin.html'" aria-label="Admin">🛡️</button>
     <button class="gear" onclick="go('settings')" aria-label="Pengaturan">⚙️</button>
   </div>
 </header>
@@ -514,6 +525,7 @@ const SUPABASE_ANON_KEY='sb_publishable_MrR16vXo0iwYPS6evo_FzA_-H-26aLK';
 /* ============================================================== */
 const CONFIGURED = typeof window.supabase!=='undefined' && !SUPABASE_URL.includes('GANTI');
 const sb = CONFIGURED? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const ADMIN_EMAIL='arifhr24@gmail.com';
 let USER=null;
 let KEY='amplop_local';
 const MONTHS=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -981,7 +993,7 @@ function resetData(){
 
 /* ================= AUTH & SYNC ================= */
 function agShow(step){
-  ['login','register','register-otp','license'].forEach(s=>document.getElementById('ag-step-'+s).style.display= s===step?'block':'none');
+  ['login','register','register-otp','license','recovery'].forEach(s=>document.getElementById('ag-step-'+s).style.display= s===step?'block':'none');
   agErr(''); agInfo('');
 }
 function agErr(msg){
@@ -1051,6 +1063,21 @@ async function resendRegisterOtp(){
   const {error}=await sb.auth.resend({type:'signup', email:pendingRegisterEmail});
   if(error){ agErr('Gagal kirim ulang: '+error.message); return; }
   agInfo('Kode baru sudah dikirim ✓');
+}
+async function saveRecoveryPw(){
+  const pw=document.getElementById('ag-rec-pw').value;
+  if(pw.length<6){ agErr('Password minimal 6 karakter.'); return; }
+  const btn=document.getElementById('ag-rec-btn'); btn.disabled=true; btn.textContent='Menyimpan…';
+  const {data, error}=await sb.auth.updateUser({password:pw});
+  btn.disabled=false; btn.textContent='Simpan Password Baru';
+  if(error){ agErr('Gagal menyimpan: '+error.message); return; }
+  toast('Password baru tersimpan ✓');
+  await startApp(data.session);
+}
+if(sb){
+  sb.auth.onAuthStateChange((event, session)=>{
+    if(event==='PASSWORD_RECOVERY'){ agGate(true); agShow('recovery'); }
+  });
 }
 async function doLogout(){
   if(sb) await sb.auth.signOut();
@@ -1122,11 +1149,14 @@ function render(){ renderHome(); renderTxns(); renderEnv(); renderReport(); rend
 }
 async function startApp(session){
   USER=session.user;
-  const licensed=await checkLicense(USER.email, USER.id);
+  const isAdmin=(USER.email||'').toLowerCase()===ADMIN_EMAIL;
+  const licensed= isAdmin || await checkLicense(USER.email, USER.id);
   if(!licensed){
     document.getElementById('ag-lic-email').textContent=USER.email;
     agShow('license'); agGate(true); return;
   }
+  const adminBtn=document.getElementById('admin-btn');
+  if(adminBtn) adminBtn.style.display= isAdmin? 'inline-flex':'none';
   KEY='amplop_v2_'+USER.id;
   const firstRun=!localStorage.getItem(KEY);
   load();

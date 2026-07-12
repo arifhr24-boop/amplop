@@ -95,6 +95,33 @@ akan bisa masuk lagi setelah sesi loginnya berakhir (dicek ulang tiap login).
   Untuk aplikasi keuangan pribadi satu pengguna, ini praktis tidak pernah jadi
   masalah.
 
+## 8. Setup Panel Admin
+
+Panel admin (`admin.html`) bisa melihat semua pengguna terdaftar, mengubah
+email/password mereka, mengirim link reset password, dan menghapus akun.
+Karena ini butuh privilege penuh (Supabase Admin API), butuh 2 langkah setup
+manual yang **tidak bisa dilakukan lewat kode**:
+
+1. **Buat akun admin di Supabase** (bukan lewat halaman Daftar):
+   - Dashboard Supabase → **Authentication → Users → Add user**
+   - Isi email admin (`arifhr24@gmail.com`) dan password admin pilihanmu
+   - Centang **Auto Confirm User** supaya tidak perlu konfirmasi email
+   - Email ini dicek terhadap konstanta `ADMIN_EMAIL` di `login.html`,
+     `admin.html`, dan `api/admin.js` — kalau mau ganti/tambah admin, ubah
+     nilai itu di ketiga file tersebut lalu deploy ulang
+
+2. **Tambahkan environment variable di Vercel** (rahasia, jangan pernah
+   ditaruh di kode/git):
+   - Dashboard Supabase → **Project Settings → API** → salin **service_role
+     key** (BUKAN anon key — kunci ini bisa mengambil-alih seluruh database,
+     jaga baik-baik)
+   - Dashboard Vercel → project ini → **Settings → Environment Variables** →
+     tambahkan `SUPABASE_SERVICE_ROLE_KEY` = (paste key tadi) → Save
+   - Redeploy project agar env var terbaca oleh `api/admin.js`
+
+Setelah kedua langkah di atas selesai: masuk ke app dengan akun admin →
+ikon 🛡️ muncul di pojok kanan atas header → klik untuk buka `admin.html`.
+
 ## Checklist sebelum launch
 
 - [ ] SQL sudah dijalankan, dua tabel muncul
@@ -108,3 +135,7 @@ akan bisa masuk lagi setelah sesi loginnya berakhir (dicek ulang tiap login).
       data muncul
 - [ ] Tes Daftar dengan email yang TIDAK ada di `licenses` → harus ditolak
 - [ ] Tes Masuk dengan password salah → harus muncul peringatan
+- [ ] Akun admin dibuat manual di Supabase Dashboard (bukan lewat Daftar)
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` sudah diisi di Environment Variables Vercel
+- [ ] Tes masuk sebagai admin → ikon 🛡️ muncul → buka admin.html → daftar
+      pengguna muncul → coba edit email/password satu akun test → hapus
