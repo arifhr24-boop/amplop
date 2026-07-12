@@ -137,6 +137,13 @@ function adErr(msg){ const el=document.getElementById('ad-err'); el.textContent=
 function fmtDate(s){ if(!s) return '—'; const d=new Date(s); return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}); }
 function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+function authErrorMessage(error){
+  const m=(error && error.message) || '';
+  if(/security purposes/i.test(m)) return 'Terlalu banyak percobaan. Tunggu beberapa detik lalu coba lagi.';
+  if(/invalid login credentials/i.test(m)) return 'Email atau password salah.';
+  if(/email not confirmed/i.test(m)) return 'Email belum dikonfirmasi. Aktifkan Auto Confirm User di Supabase Dashboard untuk akun ini.';
+  return m || 'Terjadi kesalahan. Coba lagi.';
+}
 async function adLogin(){
   const email=document.getElementById('ad-email').value.trim().toLowerCase();
   const pw=document.getElementById('ad-pw').value;
@@ -144,7 +151,7 @@ async function adLogin(){
   const btn=document.getElementById('ad-login-btn'); btn.disabled=true; btn.textContent='Memeriksa…';
   const {data, error}=await sb.auth.signInWithPassword({email, password:pw});
   btn.disabled=false; btn.textContent='Masuk';
-  if(error){ adErr('Email atau password salah.'); return; }
+  if(error){ adErr(authErrorMessage(error)); return; }
   showPanel();
 }
 async function adLogout(){ await sb.auth.signOut(); location.reload(); }
@@ -163,8 +170,7 @@ async function callApi(action, payload){
     });
     const json=await res.json().catch(()=>({}));
     if(!res.ok){
-      const msg=json.error||'Gagal memproses';
-      toast(/security purposes/i.test(msg) ? 'Tunggu beberapa detik sebelum mencoba lagi' : msg);
+      toast(authErrorMessage({message: json.error||'Gagal memproses'}));
       return null;
     }
     return json;
