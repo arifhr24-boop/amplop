@@ -64,7 +64,10 @@ tanpa login — sengaja, supaya kamu bisa testing dulu.
 2. Pasang domainmu di Vercel: **Settings → Domains** (misal `app.amplop.id`,
    dan landing page di `amplop.id`)
 3. Di Supabase: **Authentication → URL Configuration** → isi **Site URL**
-   dengan domain app-mu
+   dengan domain app-mu, dan tambahkan domain yang sama (misal
+   `https://www.amplop.online/login.html`) di kolom **Redirect URLs** —
+   ini wajib supaya link "Lupa Password" dan reset dari admin panel
+   mengarah balik ke halaman yang benar, bukan ditolak Supabase
 
 ## 6. Alur kerja setiap ada pembeli
 

@@ -149,17 +149,26 @@ async function adLogin(){
 }
 async function adLogout(){ await sb.auth.signOut(); location.reload(); }
 
+let busy=false;
 async function callApi(action, payload){
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session){ toast('Sesi berakhir, silakan masuk ulang'); location.reload(); return null; }
-  const res=await fetch('/api/admin', {
-    method:'POST',
-    headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+session.access_token},
-    body: JSON.stringify({action, payload})
-  });
-  const json=await res.json().catch(()=>({}));
-  if(!res.ok){ toast(json.error||'Gagal memproses'); return null; }
-  return json;
+  if(busy){ toast('Tunggu proses sebelumnya selesai…'); return null; }
+  busy=true;
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){ toast('Sesi berakhir, silakan masuk ulang'); location.reload(); return null; }
+    const res=await fetch('/api/admin', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+session.access_token},
+      body: JSON.stringify({action, payload})
+    });
+    const json=await res.json().catch(()=>({}));
+    if(!res.ok){
+      const msg=json.error||'Gagal memproses';
+      toast(/security purposes/i.test(msg) ? 'Tunggu beberapa detik sebelum mencoba lagi' : msg);
+      return null;
+    }
+    return json;
+  } finally { busy=false; }
 }
 
 function showPanel(){
@@ -186,7 +195,7 @@ async function loadUsers(){
       <td>${fmtDate(u.last_sign_in_at)}</td>
       <td class="actions">
         <button class="btn ghost sm" onclick="openEdit('${u.id}')">Edit</button>
-        <button class="btn ghost sm" onclick="sendReset('${esc(u.email)}')">Kirim Link Reset</button>
+        <button class="btn ghost sm" onclick="sendReset('${esc(u.email)}', this)">Kirim Link Reset</button>
       </td>
     </tr>`).join('')}</tbody></table>`;
 }
@@ -226,9 +235,12 @@ async function deleteUser(){
   if(!r) return;
   toast('Akun dihapus'); closeModal(); loadUsers();
 }
-async function sendReset(email){
+async function sendReset(email, btn){
   if(!confirm('Kirim email link reset password ke '+email+'?')) return;
+  const original=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Mengirim…'; }
   const r=await callApi('sendReset', {email});
+  if(btn){ btn.disabled=false; btn.textContent=original; }
   if(!r) return;
   toast('Link reset terkirim ✓');
 }

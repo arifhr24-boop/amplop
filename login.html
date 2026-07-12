@@ -238,7 +238,19 @@ nav.bottom .fab{width:52px; height:52px; border-radius:50%; background:var(--kra
         <button type="button" class="pw-toggle" onclick="togglePw('ag-login-pw',this)" aria-label="Tampilkan password">👁</button>
       </div>
       <div style="margin-top:16px"><button class="btn p" id="ag-login-btn" onclick="doLogin()">Masuk</button></div>
-      <button class="ag-link" onclick="agShow('register')">Belum punya akun? Daftar</button>
+      <div style="display:flex; gap:8px; justify-content:center; margin-top:6px">
+        <button class="ag-link" style="width:auto" onclick="agShow('register')">Belum punya akun? Daftar</button>
+        <span style="color:var(--muted)">·</span>
+        <button class="ag-link" style="width:auto" onclick="agShow('forgot')">Lupa password?</button>
+      </div>
+    </div>
+
+    <div id="ag-step-forgot" style="display:none">
+      <p class="sub">Masukkan email akunmu. Kami kirim link untuk membuat password baru.</p>
+      <label class="f">Email</label>
+      <input class="f" type="email" id="ag-forgot-email" placeholder="nama@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')sendForgotPassword()">
+      <div style="margin-top:16px"><button class="btn p" id="ag-forgot-btn" onclick="sendForgotPassword()">Kirim Link Reset</button></div>
+      <button class="ag-link" onclick="agShow('login')">Kembali ke Masuk</button>
     </div>
 
     <div id="ag-step-register" style="display:none">
@@ -993,7 +1005,7 @@ function resetData(){
 
 /* ================= AUTH & SYNC ================= */
 function agShow(step){
-  ['login','register','register-otp','license','recovery'].forEach(s=>document.getElementById('ag-step-'+s).style.display= s===step?'block':'none');
+  ['login','register','register-otp','license','recovery','forgot'].forEach(s=>document.getElementById('ag-step-'+s).style.display= s===step?'block':'none');
   agErr(''); agInfo('');
 }
 function agErr(msg){
@@ -1073,6 +1085,19 @@ async function saveRecoveryPw(){
   if(error){ agErr('Gagal menyimpan: '+error.message); return; }
   toast('Password baru tersimpan ✓');
   await startApp(data.session);
+}
+async function sendForgotPassword(){
+  const email=document.getElementById('ag-forgot-email').value.trim().toLowerCase();
+  if(!email.includes('@')){ agErr('Masukkan email yang valid.'); return; }
+  const btn=document.getElementById('ag-forgot-btn'); btn.disabled=true; btn.textContent='Mengirim…';
+  const {error}=await sb.auth.resetPasswordForEmail(email, {redirectTo: location.origin+location.pathname});
+  btn.disabled=false; btn.textContent='Kirim Link Reset';
+  if(error){
+    agErr(/security purposes/i.test(error.message) ? 'Tunggu beberapa detik sebelum mencoba lagi.' : 'Gagal mengirim: '+error.message);
+    return;
+  }
+  agShow('login');
+  agInfo('Kalau email terdaftar, link reset password sudah dikirim ✓ Cek inbox (dan folder spam).');
 }
 if(sb){
   sb.auth.onAuthStateChange((event, session)=>{
