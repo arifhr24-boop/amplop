@@ -1083,6 +1083,7 @@ async function saveRecoveryPw(){
   const {data, error}=await sb.auth.updateUser({password:pw});
   btn.disabled=false; btn.textContent='Simpan Password Baru';
   if(error){ agErr('Gagal menyimpan: '+error.message); return; }
+  history.replaceState(null, '', location.pathname);
   toast('Password baru tersimpan ✓');
   await startApp(data.session);
 }
@@ -1192,12 +1193,18 @@ async function startApp(session){
     setTimeout(()=>document.getElementById('onboard-modal').classList.add('open'), 400);
   }
 }
+const isRecoveryLink = /type=recovery/.test(location.hash) || /type=recovery/.test(location.search);
 async function bootApp(){
   if(!CONFIGURED){
     /* mode pengembangan: tanpa Supabase, jalan lokal seperti biasa */
     const firstRun=!localStorage.getItem(KEY);
     load(); go('home'); setSync('local');
     if(firstRun){ save(); setTimeout(()=>document.getElementById('onboard-modal').classList.add('open'), 400); }
+    return;
+  }
+  if(isRecoveryLink){
+    /* link reset password: JANGAN langsung masuk, tunggu password baru diisi dulu */
+    load(); agShow('recovery'); agGate(true);
     return;
   }
   const {data:{session}}=await sb.auth.getSession();
