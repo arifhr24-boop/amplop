@@ -304,7 +304,7 @@ nav.bottom .fab-label{display:none}
       <input class="f num" id="ag-reg-otp" inputmode="numeric" maxlength="6" placeholder="••••••" style="text-align:center; letter-spacing:.4em; font-size:20px">
       <div style="margin-top:16px"><button class="btn p" id="ag-reg-otp-btn" onclick="verifyRegisterOtp()">Konfirmasi & Masuk</button></div>
       <div style="display:flex; gap:8px; justify-content:center; margin-top:6px">
-        <button class="ag-link" style="width:auto" onclick="resendRegisterOtp()">Kirim ulang kode</button>
+        <button class="ag-link" style="width:auto" id="ag-reg-resend-btn" onclick="resendRegisterOtp()">Kirim ulang kode</button>
         <span style="color:var(--muted)">·</span>
         <button class="ag-link" style="width:auto" onclick="agShow('register')">Ganti email</button>
       </div>
@@ -1058,7 +1058,25 @@ function authErrorMessage(error){
   if(/different from the old password/i.test(m)) return 'Password baru harus berbeda dari password lama.';
   if(/already registered/i.test(m)) return 'Email ini sudah terdaftar. Coba tab Masuk, atau pakai Lupa Password.';
   if(/password should be at least/i.test(m)) return 'Password terlalu pendek — minimal 6 karakter.';
+  if(/expired|invalid.*otp|otp.*invalid|token.*(expired|invalid)/i.test(m)) return 'Kode sudah kedaluwarsa atau tidak valid. Klik "Kirim ulang kode" untuk kode baru.';
   return m || 'Terjadi kesalahan. Coba lagi.';
+}
+const RESEND_COOLDOWN_SEC=60;
+let resendCooldownTimer=null;
+function startResendCooldown(btnId, seconds=RESEND_COOLDOWN_SEC){
+  const btn=document.getElementById(btnId);
+  if(!btn) return;
+  clearInterval(resendCooldownTimer);
+  let remaining=seconds;
+  const label=()=>btn.textContent='Kirim ulang kode ('+remaining+'s)';
+  btn.disabled=true; label();
+  resendCooldownTimer=setInterval(()=>{
+    remaining--;
+    if(remaining<=0){
+      clearInterval(resendCooldownTimer);
+      btn.disabled=false; btn.textContent='Kirim ulang kode';
+    } else label();
+  }, 1000);
 }
 async function doLogin(){
   const email=document.getElementById('ag-login-email').value.trim().toLowerCase();
@@ -1073,6 +1091,7 @@ async function doLogin(){
 }
 
 let pendingRegisterEmail='';
+let pendingRegisterOtpType='email';
 async function doRegister(){
   const email=document.getElementById('ag-reg-email').value.trim().toLowerCase();
   const pw=document.getElementById('ag-reg-pw').value;
@@ -1081,23 +1100,31 @@ async function doRegister(){
   const btn=document.getElementById('ag-reg-btn'); btn.disabled=true; btn.textContent='Memeriksa…';
   const {data, error}=await sb.auth.signUp({email, password:pw});
   if(error){ btn.disabled=false; btn.textContent='Daftar'; agErr(authErrorMessage(error)); return; }
-  /* Selalu minta kode verifikasi terpisah di sini, TIDAK bergantung pada
-     opsi "Confirm email" Supabase — supaya akun tidak pernah langsung
-     aktif tanpa pemilik emailnya membuktikan kepemilikan email itu. */
-  const {error: otpErr} = await sb.auth.signInWithOtp({email, options:{shouldCreateUser:false}});
-  btn.disabled=false; btn.textContent='Daftar';
-  if(otpErr){ agErr(authErrorMessage(otpErr)); return; }
+  if(data.session){
+    /* Opsi "Confirm email" Supabase nonaktif: signUp() tidak mengirim email
+       apa pun, jadi kita yang kirim kode verifikasinya sendiri. */
+    const {error: otpErr} = await sb.auth.signInWithOtp({email, options:{shouldCreateUser:false}});
+    btn.disabled=false; btn.textContent='Daftar';
+    if(otpErr){ agErr(authErrorMessage(otpErr)); return; }
+    pendingRegisterOtpType='email';
+  } else {
+    /* Opsi "Confirm email" aktif: Supabase SUDAH otomatis mengirim kode lewat
+       template Confirm signup. Jangan kirim kode kedua (bisa kena rate limit). */
+    btn.disabled=false; btn.textContent='Daftar';
+    pendingRegisterOtpType='signup';
+  }
   pendingRegisterEmail=email;
   document.getElementById('ag-reg-sent-to').textContent=email;
   document.getElementById('ag-reg-otp').value='';
   agShow('register-otp');
+  startResendCooldown('ag-reg-resend-btn');
   setTimeout(()=>document.getElementById('ag-reg-otp').focus(),100);
 }
 async function verifyRegisterOtp(){
   const token=document.getElementById('ag-reg-otp').value.trim();
   if(token.length<6){ agErr('Kode harus 6 digit.'); return; }
   const btn=document.getElementById('ag-reg-otp-btn'); btn.disabled=true; btn.textContent='Memeriksa…';
-  const {data, error}=await sb.auth.verifyOtp({email:pendingRegisterEmail, token, type:'email'});
+  const {data, error}=await sb.auth.verifyOtp({email:pendingRegisterEmail, token, type:pendingRegisterOtpType});
   btn.disabled=false; btn.textContent='Konfirmasi & Masuk';
   if(error){ agErr(authErrorMessage(error)); return; }
   if(!data.session){ agErr('Kode salah atau kedaluwarsa. Coba kirim ulang.'); return; }
@@ -1106,9 +1133,13 @@ async function verifyRegisterOtp(){
 async function resendRegisterOtp(){
   if(!pendingRegisterEmail){ agShow('register'); return; }
   agErr('');
-  const {error}=await sb.auth.signInWithOtp({email:pendingRegisterEmail, options:{shouldCreateUser:false}});
+  const {error} = pendingRegisterOtpType==='signup'
+    ? await sb.auth.resend({type:'signup', email:pendingRegisterEmail})
+    : await sb.auth.signInWithOtp({email:pendingRegisterEmail, options:{shouldCreateUser:false}});
   if(error){ agErr(authErrorMessage(error)); return; }
-  agInfo('Kode baru sudah dikirim ✓');
+  document.getElementById('ag-reg-otp').value='';
+  startResendCooldown('ag-reg-resend-btn');
+  agInfo('Kode baru sudah dikirim — kode lama sudah tidak berlaku ✓');
 }
 async function saveRecoveryPw(){
   const pw=document.getElementById('ag-rec-pw').value;
