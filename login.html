@@ -286,7 +286,7 @@ nav.bottom .fab-label{display:none}
     </div>
 
     <div id="ag-step-register" style="display:none">
-      <p class="sub">Daftar dengan email yang kamu pakai saat membeli.</p>
+      <p class="sub">Buat akun baru dengan email &amp; password.</p>
       <label class="f">Email</label>
       <input class="f" type="email" id="ag-reg-email" placeholder="nama@email.com" autocomplete="email">
       <label class="f">Password</label>
@@ -308,12 +308,6 @@ nav.bottom .fab-label{display:none}
         <span style="color:var(--muted)">·</span>
         <button class="ag-link" style="width:auto" onclick="agShow('register')">Ganti email</button>
       </div>
-    </div>
-
-    <div id="ag-step-license" style="display:none">
-      <p class="sub" style="margin-top:14px">😕 Email <b id="ag-lic-email"></b> belum terdaftar sebagai pembeli.<br><br>
-      Jika kamu sudah membeli, pastikan memakai email yang sama dengan saat checkout, atau hubungi kami dengan bukti pembelianmu.</p>
-      <div style="margin-top:16px"><button class="btn ghost" style="width:100%" onclick="doLogout()">Coba email lain</button></div>
     </div>
 
     <div id="ag-step-recovery" style="display:none">
@@ -1037,7 +1031,7 @@ function resetData(){
 
 /* ================= AUTH & SYNC ================= */
 function agShow(step){
-  ['login','register','register-otp','license','recovery','forgot'].forEach(s=>document.getElementById('ag-step-'+s).style.display= s===step?'block':'none');
+  ['login','register','register-otp','recovery','forgot'].forEach(s=>document.getElementById('ag-step-'+s).style.display= s===step?'block':'none');
   agErr(''); agInfo('');
 }
 function agErr(msg){
@@ -1085,13 +1079,6 @@ async function doRegister(){
   if(!email.includes('@')){ agErr('Masukkan email yang valid.'); return; }
   if(pw.length<6){ agErr('Password minimal 6 karakter.'); return; }
   const btn=document.getElementById('ag-reg-btn'); btn.disabled=true; btn.textContent='Memeriksa…';
-  const licensed=await checkLicenseByEmail(email);
-  if(!licensed){
-    btn.disabled=false; btn.textContent='Daftar';
-    document.getElementById('ag-lic-email').textContent=email;
-    agShow('license');
-    return;
-  }
   const {data, error}=await sb.auth.signUp({email, password:pw});
   if(error){ btn.disabled=false; btn.textContent='Daftar'; agErr(authErrorMessage(error)); return; }
   /* Selalu minta kode verifikasi terpisah di sini, TIDAK bergantung pada
@@ -1154,27 +1141,6 @@ async function doLogout(){
   location.reload();
 }
 
-/* --- lisensi --- */
-async function queryLicense(email){
-  const {data, error}=await sb.from('licenses').select('email').eq('email', email).maybeSingle();
-  if(error) throw error;
-  return !!data;
-}
-async function checkLicenseByEmail(email){
-  try{ return await queryLicense(email); }catch(e){ return false; }
-}
-async function checkLicense(email, userId){
-  const flagKey='amplop_lic_'+userId;
-  try{
-    const licensed=await queryLicense(email);
-    if(licensed){ localStorage.setItem(flagKey,'1'); return true; }
-    localStorage.removeItem(flagKey); return false;
-  }catch(e){
-    /* offline / gangguan jaringan: pakai hasil pemeriksaan terakhir */
-    return localStorage.getItem(flagKey)==='1';
-  }
-}
-
 /* --- sinkronisasi --- */
 let pushTimer=null, dirty=false;
 function setSync(state){
@@ -1220,11 +1186,6 @@ function render(){ renderHome(); renderTxns(); renderEnv(); renderReport(); rend
 async function startApp(session){
   USER=session.user;
   const isAdmin=(USER.email||'').toLowerCase()===ADMIN_EMAIL;
-  const licensed= isAdmin || await checkLicense(USER.email, USER.id);
-  if(!licensed){
-    document.getElementById('ag-lic-email').textContent=USER.email;
-    agShow('license'); agGate(true); return;
-  }
   const adminBtn=document.getElementById('admin-btn');
   if(adminBtn) adminBtn.style.display= isAdmin? 'inline-flex':'none';
   KEY='amplop_v2_'+USER.id;

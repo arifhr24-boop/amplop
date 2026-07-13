@@ -29,14 +29,14 @@ body{
 }
 h1,h2,h3,.disp{font-family:'Bricolage Grotesque','Inter',sans-serif; letter-spacing:-.02em}
 a{color:inherit}
-.wrap{max-width:1080px; margin:0 auto; padding:0 20px}
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px}
 
 /* ---- header ---- */
 header.site{
   position:sticky; top:0; z-index:20; background:rgba(245,243,238,.85); backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);
 }
-header.site .bar{display:flex; align-items:center; justify-content:space-between; padding:14px 0}
+header.site .bar{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 4px}
 .logo{font-family:'Bricolage Grotesque'; font-weight:800; font-size:20px; display:flex; align-items:center; gap:6px}
 .logo em{font-style:normal; color:var(--kraft)}
 .btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; border:none; cursor:pointer;
@@ -124,7 +124,7 @@ footer{border-top:1px solid var(--line); padding:28px 0; text-align:center; colo
       <a class="btn p lg" href="login.html">Mulai Sekarang →</a>
       <a class="btn ghost lg" href="#cara-kerja">Lihat Cara Kerjanya</a>
     </div>
-    <div class="note">Masuk tanpa password — cukup email, kami kirim kode 6 digit.</div>
+    <div class="note">Daftar dengan email &amp; password, verifikasi lewat kode yang dikirim ke emailmu.</div>
 
     <div class="mock-wrap">
       <div class="phone">
@@ -178,11 +178,6 @@ footer{border-top:1px solid var(--line); padding:28px 0; text-align:center; colo
         <div class="ic">☁️</div>
         <h3>Sinkron ke Cloud</h3>
         <p>Data tersimpan otomatis dan tersinkron di semua perangkatmu, tanpa perlu backup manual.</p>
-      </div>
-      <div class="feat">
-        <div class="ic">🔒</div>
-        <h3>Masuk Tanpa Password</h3>
-        <p>Login aman lewat kode sekali pakai ke email — tidak ada password untuk diingat atau dibobol.</p>
       </div>
     </div>
   </div>

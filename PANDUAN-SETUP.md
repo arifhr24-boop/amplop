@@ -73,20 +73,19 @@ tanpa login — sengaja, supaya kamu bisa testing dulu.
 
 ## 6. Alur kerja setiap ada pembeli
 
+Pendaftaran **tidak lagi dibatasi** oleh tabel `licenses` — siapa pun bisa
+Daftar dengan email apa pun (isi email + password → masukkan kode OTP yang
+dikirim ke emailnya → akun otomatis aktif dan langsung masuk). Tabel
+`licenses` sekarang murni informasi (badge "Pembeli"/"Tidak ada" di panel
+admin), bukan gerbang akses.
+
 1. Pembeli checkout di Lynk.id → kamu menerima notifikasi berisi **email pembeli**
-2. Buka Supabase → **Table Editor → licenses → Insert row** → isi kolom
-   `email` dengan email pembeli (huruf kecil semua), kolom `note` bebas
-   (misal nama/no. order) → Save
-3. Pembeli buka app → tab **Daftar** → isi email yang sama + buat password →
-   masukkan kode 6 digit yang dikirim ke emailnya → akun otomatis aktif dan
-   langsung masuk ✅. Lain kali, cukup tab **Masuk** dengan email + password.
-
-Jika pembeli komplain "belum terdaftar sebagai pembeli" saat Daftar: hampir
-selalu karena email yang dipakai beda dengan email saat checkout. Cocokkan,
-lalu tambahkan email yang benar ke tabel `licenses`.
-
-Untuk refund/blokir: hapus baris emailnya dari tabel `licenses` — dia tidak
-akan bisa masuk lagi setelah sesi loginnya berakhir (dicek ulang tiap login).
+2. (Opsional, buat pencatatan) Buka Supabase → **Table Editor → licenses →
+   Insert row** → isi kolom `email` dan `note` → Save. Ini tidak memengaruhi
+   bisa/tidaknya mereka Daftar atau masuk, hanya tercatat di panel admin.
+3. Kalau ingin memblokir/menghapus akun tertentu (misal refund), pakai
+   panel admin (`admin.html`) → Edit → Hapus akun. Menghapus baris di
+   `licenses` saja **tidak** memblokir akses — itu cuma menghapus catatannya.
 
 ## 7. Cara kerja sinkronisasi (untuk kamu pahami)
 
@@ -135,10 +134,8 @@ ikon 🛡️ muncul di pojok kanan atas header → klik untuk buka `admin.html`.
 - [ ] SMTP custom terpasang (Resend/Brevo)
 - [ ] URL + anon key sudah ditempel di login.html
 - [ ] Site URL di Supabase diisi domain app
-- [ ] Tes end-to-end: tambah email sendiri ke `licenses` → Daftar → masukkan
-      kode OTP → langsung masuk → catat transaksi di HP → buka di laptop →
-      data muncul
-- [ ] Tes Daftar dengan email yang TIDAK ada di `licenses` → harus ditolak
+- [ ] Tes end-to-end: Daftar dengan email mana pun → masukkan kode OTP →
+      langsung masuk → catat transaksi di HP → buka di laptop → data muncul
 - [ ] Tes Masuk dengan password salah → harus muncul peringatan
 - [ ] Akun admin dibuat manual di Supabase Dashboard (bukan lewat Daftar)
 - [ ] `SUPABASE_SERVICE_ROLE_KEY` sudah diisi di Environment Variables Vercel
