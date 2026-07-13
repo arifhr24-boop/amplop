@@ -306,7 +306,7 @@ nav.bottom .fab-label{display:none}
       <div style="display:flex; gap:8px; justify-content:center; margin-top:6px">
         <button class="ag-link" style="width:auto" id="ag-reg-resend-btn" onclick="resendRegisterOtp()">Kirim ulang kode</button>
         <span style="color:var(--muted)">·</span>
-        <button class="ag-link" style="width:auto" onclick="agShow('register')">Ganti email</button>
+        <button class="ag-link" style="width:auto" onclick="clearPendingRegister();agShow('register')">Ganti email</button>
       </div>
     </div>
 
@@ -1092,6 +1092,15 @@ async function doLogin(){
 
 let pendingRegisterEmail='';
 let pendingRegisterOtpType='email';
+const PENDING_REG_KEY='amplop_pending_register';
+function savePendingRegister(email, type){
+  try{ sessionStorage.setItem(PENDING_REG_KEY, JSON.stringify({email, type})); }catch(e){}
+}
+function loadPendingRegister(){
+  try{ const raw=sessionStorage.getItem(PENDING_REG_KEY); return raw? JSON.parse(raw) : null; }catch(e){ return null; }
+}
+function clearPendingRegister(){ try{ sessionStorage.removeItem(PENDING_REG_KEY); }catch(e){} }
+
 async function doRegister(){
   const email=document.getElementById('ag-reg-email').value.trim().toLowerCase();
   const pw=document.getElementById('ag-reg-pw').value;
@@ -1101,8 +1110,11 @@ async function doRegister(){
   const {data, error}=await sb.auth.signUp({email, password:pw});
   if(error){ btn.disabled=false; btn.textContent='Daftar'; agErr(authErrorMessage(error)); return; }
   if(data.session){
-    /* Opsi "Confirm email" Supabase nonaktif: signUp() tidak mengirim email
-       apa pun, jadi kita yang kirim kode verifikasinya sendiri. */
+    /* Opsi "Confirm email" Supabase nonaktif: signUp() langsung memberi sesi
+       aktif, TAPI belum boleh dipakai sebelum kode OTP diverifikasi — kalau
+       tidak di-signOut, reload tab (mis. pindah ke app Email lalu balik lagi)
+       akan menemukan sesi ini dan melewati verifikasi OTP sepenuhnya. */
+    await sb.auth.signOut();
     const {error: otpErr} = await sb.auth.signInWithOtp({email, options:{shouldCreateUser:false}});
     btn.disabled=false; btn.textContent='Daftar';
     if(otpErr){ agErr(authErrorMessage(otpErr)); return; }
@@ -1114,6 +1126,7 @@ async function doRegister(){
     pendingRegisterOtpType='signup';
   }
   pendingRegisterEmail=email;
+  savePendingRegister(email, pendingRegisterOtpType);
   document.getElementById('ag-reg-sent-to').textContent=email;
   document.getElementById('ag-reg-otp').value='';
   agShow('register-otp');
@@ -1128,6 +1141,7 @@ async function verifyRegisterOtp(){
   btn.disabled=false; btn.textContent='Konfirmasi & Masuk';
   if(error){ agErr(authErrorMessage(error)); return; }
   if(!data.session){ agErr('Kode salah atau kedaluwarsa. Coba kirim ulang.'); return; }
+  clearPendingRegister();
   await startApp(data.session);
 }
 async function resendRegisterOtp(){
@@ -1244,8 +1258,18 @@ async function bootApp(){
     return;
   }
   const {data:{session}}=await sb.auth.getSession();
-  if(session){ await startApp(session); }
-  else { load(); agShow('login'); agGate(true); }
+  if(session){ await startApp(session); return; }
+  const pending=loadPendingRegister();
+  if(pending){
+    /* Tab sempat reload di tengah proses Daftar (mis. pindah ke app Email
+       lalu balik lagi) — lanjutkan dari step OTP, bukan hilang ke form Masuk. */
+    pendingRegisterEmail=pending.email;
+    pendingRegisterOtpType=pending.type;
+    document.getElementById('ag-reg-sent-to').textContent=pending.email;
+    load(); agShow('register-otp'); agGate(true);
+    return;
+  }
+  load(); agShow('login'); agGate(true);
 }
 bootApp();
 if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
