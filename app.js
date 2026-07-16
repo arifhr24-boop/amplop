@@ -1122,14 +1122,19 @@ function togglePw(id, btn){
 }
 
 function authErrorMessage(error){
-  const m=(error && error.message) || '';
+  let m=error && error.message;
+  if(typeof m!=='string' || !m.trim()) m=(error && (error.error_description||error.msg||error.error||error.name)) || '';
+  if(typeof m!=='string') m='';
+  m=m.trim();
+  if(/^[{\[]/.test(m)) m=''; /* JSON/objek mentah bukan pesan yang bisa dibaca pengguna */
   if(/security purposes/i.test(m)) return 'Terlalu banyak percobaan. Tunggu beberapa detik lalu coba lagi.';
   if(/invalid login credentials/i.test(m)) return 'Email atau password salah.';
   if(/email not confirmed/i.test(m)) return 'Email belum dikonfirmasi. Cek inbox untuk link konfirmasi (atau minta admin aktifkan Auto Confirm di Supabase).';
   if(/different from the old password/i.test(m)) return 'Password baru harus berbeda dari password lama.';
-  if(/already registered/i.test(m)) return 'Email ini sudah terdaftar. Coba tab Masuk, atau pakai Lupa Password.';
+  if(/already registered|already.*exists|user.*exists/i.test(m)) return 'Email ini sudah terdaftar. Coba tab Masuk, atau pakai Lupa Password.';
   if(/password should be at least/i.test(m)) return 'Password terlalu pendek — minimal 6 karakter.';
   if(/expired|invalid.*otp|otp.*invalid|token.*(expired|invalid)/i.test(m)) return 'Kode sudah kedaluwarsa atau tidak valid. Klik "Kirim ulang kode" untuk kode baru.';
+  if(/failed to fetch|network|load failed/i.test(m)) return 'Gagal terhubung ke server. Periksa koneksi internetmu lalu coba lagi.';
   return m || 'Terjadi kesalahan. Coba lagi.';
 }
 const RESEND_COOLDOWN_SEC=60;
@@ -1180,6 +1185,15 @@ async function doRegister(){
   const btn=document.getElementById('ag-reg-btn'); btn.disabled=true; btn.textContent='Memeriksa…';
   const {data, error}=await sb.auth.signUp({email, password:pw});
   if(error){ btn.disabled=false; btn.textContent='Daftar'; agErr(authErrorMessage(error)); return; }
+  /* Supabase tidak mengirim error kalau emailnya sudah terdaftar (supaya orang
+     luar tidak bisa mengecek email siapa saja sudah punya akun atau belum) —
+     satu-satunya penanda adalah array identities kosong pada user yang
+     dikembalikan meski status response-nya "berhasil". */
+  if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
+    btn.disabled=false; btn.textContent='Daftar';
+    agErr('Email ini sudah terdaftar. Coba tab Masuk, atau pakai Lupa Password.');
+    return;
+  }
   if(data.session){
     /* Opsi "Confirm email" Supabase nonaktif: signUp() langsung memberi sesi
        aktif, TAPI belum boleh dipakai sebelum kode OTP diverifikasi — kalau

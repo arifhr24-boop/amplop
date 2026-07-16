@@ -1,4 +1,4 @@
-const CACHE = 'amplop-cloud-v7';
+const CACHE = 'amplop-cloud-v8';
 const ASSETS = ['./login.html', './style.css', './app.js', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
