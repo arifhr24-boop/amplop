@@ -1,13 +1,13 @@
 {
-  "name": "Amplop — Atur Uang Sistem Amplop",
-  "short_name": "Amplop",
+  "name": "Amplop.",
+  "short_name": "Amplop.",
   "description": "Budgeting sistem amplop: isi amplop di awal bulan, catat pengeluaran, dan tahu berapa yang aman dipakai per hari.",
   "start_url": "./login.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F5F3EE",
-  "theme_color": "#232F66",
+  "background_color": "#F6F3EC",
+  "theme_color": "#1D2338",
   "lang": "id",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
