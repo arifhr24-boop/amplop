@@ -152,14 +152,36 @@ function go(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
   document.querySelectorAll('.nav-item[data-page],.bnav-item[data-page]').forEach(x=>x.classList.toggle('active', x.dataset.page===p));
-  const tp=document.getElementById('topbar-period'); if(tp) tp.style.display=['home','txns','env','report'].includes(p)?'flex':'none';
+  const tp=document.getElementById('topbar-period');
+  if(tp){
+    tp.style.display=['home','txns','env','report'].includes(p)?'flex':'none';
+    tp.classList.remove('open');
+    const pcb=document.getElementById('period-compact-btn'); if(pcb) pcb.setAttribute('aria-expanded','false');
+  }
   window.scrollTo({top:0}); render();
 }
+function setTopbarPeriod(period){
+  document.getElementById('topbar-period-label').textContent=period.label;
+  document.getElementById('topbar-period-compact').textContent=period.shortLabel;
+}
+function togglePeriodPopover(){
+  const tp=document.getElementById('topbar-period');
+  const willOpen=!tp.classList.contains('open');
+  tp.classList.toggle('open', willOpen);
+  document.getElementById('period-compact-btn').setAttribute('aria-expanded', String(willOpen));
+}
+document.addEventListener('click', e=>{
+  const tp=document.getElementById('topbar-period');
+  if(tp && tp.classList.contains('open') && !tp.contains(e.target)){
+    tp.classList.remove('open');
+    const btn=document.getElementById('period-compact-btn'); if(btn) btn.setAttribute('aria-expanded','false');
+  }
+});
 
 /* ================= HOME ================= */
 function renderHome(){
   const period=getPeriod(periodOffset), key=period.key, isCur=periodOffset===0;
-  document.getElementById('topbar-period-label').textContent=period.label;
+  setTopbarPeriod(period);
   const total=DB.wallets.reduce((s,w)=>s+walletBalance(w.id),0);
   document.getElementById('h-balance').textContent=rpS(total);
   document.getElementById('h-in').textContent=rp(totIn(period));
@@ -400,7 +422,7 @@ function clearTxDateRange(){
 }
 function renderTxns(){
   const period=getPeriod(periodOffset);
-  document.getElementById('topbar-period-label').textContent=period.label;
+  setTopbarPeriod(period);
 
   const dateFrom=document.getElementById('tx-date-from').value;
   const dateTo=document.getElementById('tx-date-to').value;
@@ -457,7 +479,7 @@ function delTxn(id){ if(!confirm('Hapus transaksi ini?')) return; DB.txns=DB.txn
 /* ================= AMPLOP ================= */
 function renderEnv(){
   const period=getPeriod(periodOffset), key=period.key, alloc=allocOf(key), spent=spentByEnv(period);
-  document.getElementById('topbar-period-label').textContent=period.label;
+  setTopbarPeriod(period);
   document.getElementById('ev-rows').innerHTML=DB.envelopes.map(e=>{
     const v=alloc[e.id]? Number(alloc[e.id]).toLocaleString('id-ID'):'';
     return `<div class="alloc-row">
@@ -553,7 +575,7 @@ function quickDeleteEnv(id){
 /* ================= LAPORAN ================= */
 function renderReport(){
   const period=getPeriod(periodOffset), isCur=periodOffset===0;
-  document.getElementById('topbar-period-label').textContent=period.label;
+  setTopbarPeriod(period);
   const tin=totIn(period), tout=totOut(period), net=tin-tout;
   document.getElementById('rp-in').textContent=rp(tin);
   document.getElementById('rp-out').textContent=rp(tout);

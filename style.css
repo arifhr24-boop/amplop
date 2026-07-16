@@ -47,14 +47,24 @@ h1,h2,h3,.disp{font-family:'Fraunces',Georgia,serif; font-weight:600; letter-spa
 
 .main{max-width:560px; margin:0 auto; padding:16px 16px 24px}
 .topbar{position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:10px;
-  background:linear-gradient(180deg,var(--paper) 78%,rgba(246,243,236,0)); margin:-16px -16px 14px; padding:14px 16px 10px}
-.m-logo{display:flex}
-.period{display:flex; align-items:center; gap:4px; background:var(--card); border:1px solid var(--line);
-  border-radius:999px; padding:5px; box-shadow:var(--shadow); flex:1; min-width:0}
-.period button{width:32px; height:32px; border-radius:50%; border:none; background:transparent; color:var(--muted);
-  cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; flex:none}
-.period button:hover{background:var(--paper)}
-.period .label{font-weight:700; font-size:13px; padding:0 4px; color:var(--ink); white-space:nowrap;
+  background:linear-gradient(180deg,var(--paper) 78%,rgba(246,243,236,0)); margin:-16px -16px 14px;
+  padding:calc(14px + env(safe-area-inset-top)) 16px 10px}
+.m-logo{display:flex; flex:none}
+.period{position:relative; flex:1; min-width:64px}
+.period-compact{display:flex; align-items:center; gap:7px; width:100%; background:var(--card); border:1px solid var(--line);
+  border-radius:999px; padding:9px 12px; box-shadow:var(--shadow); font-weight:700; font-size:12.5px; color:var(--ink); cursor:pointer}
+.period-compact .cal{width:15px; height:15px; flex:none; stroke:var(--muted)}
+.period-compact span{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center}
+.period-compact .chev{width:13px; height:13px; flex:none; stroke:var(--muted); transition:transform .15s}
+.period.open .period-compact .chev{transform:rotate(180deg)}
+.period-inline{display:none; align-items:center; gap:2px; position:absolute; top:calc(100% + 8px); left:0; z-index:30;
+  width:max-content; min-width:220px; max-width:min(300px, calc(100vw - 32px));
+  background:var(--card); border:1px solid var(--line); border-radius:999px; box-shadow:var(--shadow-lg); padding:5px}
+.period.open .period-inline{display:flex}
+.period-inline button{width:34px; height:34px; border-radius:50%; border:none; background:transparent; color:var(--muted);
+  cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; flex:none}
+.period-inline button:hover{background:var(--paper)}
+.period-inline .label{font-weight:700; font-size:13px; padding:0 4px; color:var(--ink); white-space:nowrap;
   flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; text-align:center}
 .m-gear{display:flex; width:38px; height:38px; border-radius:12px; border:1px solid var(--line);
   background:var(--card); color:var(--ink); cursor:pointer; align-items:center; justify-content:center;
@@ -341,6 +351,8 @@ input.f:focus, select.f:focus{outline:none; border-color:var(--primary)}
   .main{margin:0 auto; max-width:1060px; width:100%; padding:32px 40px 96px}
   .m-logo, .m-gear{display:none}
   .topbar{position:static; background:none; margin:0 0 28px; padding:0}
+  .period-compact{display:none}
+  .period-inline{display:flex; position:static; box-shadow:var(--shadow)}
 
   .btn-record{display:flex; align-items:center; justify-content:center; gap:8px;
     background:linear-gradient(180deg,var(--brass-bright),var(--brass)); color:#241A08;
