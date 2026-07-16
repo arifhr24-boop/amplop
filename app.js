@@ -308,7 +308,10 @@ function renderDebts(){
     return `<div class="card loan-card" onclick="openDebtModal('${d.id}')">
       <div class="loan-head">
         <div><b>${esc(d.name)}</b><div class="sub">${esc(d.provider)} · ${esc(walletById(d.walletId)?.name||'-')}</div></div>
-        ${tag}
+        <div style="display:flex; align-items:center; gap:6px">
+          ${tag}
+          <div class="mini-act"><button onclick="event.stopPropagation();quickDeleteDebt('${d.id}')" aria-label="Hapus cicilan" title="Hapus cicilan">${ICON_DELETE_SVG}</button></div>
+        </div>
       </div>
       <div class="meter" style="margin-top:16px"><i class="${meterCls}" style="width:${pctBar}%"></i></div>
       <div class="loan-meta"><span>${d.paidInstallments}/${d.totalInstallments} terbayar · jatuh tempo tiap tgl ${d.dueDay}</span>
@@ -354,11 +357,19 @@ function saveDebt(){
   else { ensureCicilanEnvelope(); DB.debts.push({id:uid(), ...data, createdAt:new Date().toISOString(), lastPaid:''}); }
   save(); closeModal('debt-modal'); render(); toast('Cicilan disimpan ✓');
 }
+function removeDebt(id){
+  DB.debts=DB.debts.filter(d=>d.id!==id);
+  DB.txns=DB.txns.filter(t=>t.debtId!==id);
+  save(); render(); toast('Cicilan & transaksi pembayarannya dihapus');
+}
 function deleteDebt(){
   const id=document.getElementById('db-edit-id').value;
-  if(!id||!confirm('Hapus cicilan ini? Transaksi pembayaran yang sudah tercatat tidak ikut terhapus.')) return;
-  DB.debts=DB.debts.filter(d=>d.id!==id);
-  save(); closeModal('debt-modal'); render(); toast('Cicilan dihapus');
+  if(!id||!confirm('Hapus cicilan ini? Transaksi pembayaran yang sudah tercatat lewat cicilan ini akan ikut terhapus.')) return;
+  closeModal('debt-modal'); removeDebt(id);
+}
+function quickDeleteDebt(id){
+  if(!confirm('Hapus cicilan ini? Transaksi pembayaran yang sudah tercatat lewat cicilan ini akan ikut terhapus.')) return;
+  removeDebt(id);
 }
 function payDebt(id){
   const d=DB.debts.find(x=>x.id===id); if(!d||d.done) return;
@@ -366,7 +377,7 @@ function payDebt(id){
   const now=new Date();
   const envId=ensureCicilanEnvelope().id;
   DB.txns.push({id:uid(), type:'out', date:now.toISOString().slice(0,10),
-    desc:d.name, amount:d.installmentAmount, walletId:d.walletId, envId});
+    desc:d.name, amount:d.installmentAmount, walletId:d.walletId, envId, debtId:id});
   d.paidInstallments++;
   d.lastPaid=NOWKEY();
   const justFinished = d.paidInstallments>=d.totalInstallments;
