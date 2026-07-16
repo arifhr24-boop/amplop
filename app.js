@@ -656,10 +656,10 @@ function roundRect(ctx,x,y,w,h,r){
 }
 function fitHeroText(ctx, text, cx, y, maxWidth){
   let size=128;
-  ctx.font='800 '+size+'px "Bricolage Grotesque"';
+  ctx.font='800 '+size+'px "Poppins"';
   while(ctx.measureText(text).width>maxWidth && size>52){
     size-=6;
-    ctx.font='800 '+size+'px "Bricolage Grotesque"';
+    ctx.font='800 '+size+'px "Poppins"';
   }
   ctx.textAlign='center';
   ctx.fillText(text, cx, y+size*0.35);
@@ -667,9 +667,9 @@ function fitHeroText(ctx, text, cx, y, maxWidth){
 function drawStatBox(ctx,x,y,w,h,label,value,accent){
   roundRect(ctx,x,y,w,h,20); ctx.fillStyle='rgba(255,255,255,.10)'; ctx.fill();
   ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-  ctx.font='700 24px Inter, sans-serif'; ctx.fillStyle='rgba(255,255,255,.65)';
+  ctx.font='700 24px Poppins, sans-serif'; ctx.fillStyle='rgba(255,255,255,.65)';
   ctx.fillText(label, x+28, y+50);
-  ctx.font='800 44px "Bricolage Grotesque"'; ctx.fillStyle=accent;
+  ctx.font='800 44px "Poppins"'; ctx.fillStyle=accent;
   ctx.fillText(value, x+28, y+112);
 }
 function paintRecap(ctx, W, H){
@@ -691,14 +691,14 @@ function paintRecap(ctx, W, H){
 
   /* logo */
   ctx.textBaseline='alphabetic'; ctx.textAlign='left';
-  ctx.font='800 52px "Bricolage Grotesque"';
+  ctx.font='800 52px "Poppins"';
   ctx.fillStyle='#fff';
   ctx.fillText('✉️ Amplop', 64, 130);
   ctx.fillStyle='#C9822E';
   ctx.fillText('.', 64+ctx.measureText('✉️ Amplop').width, 130);
 
   /* pill nama periode */
-  ctx.font='700 30px Inter, sans-serif';
+  ctx.font='700 30px Poppins, sans-serif';
   const label=period.label;
   const padX=28, pillW=ctx.measureText(label).width+padX*2, pillH=56, pillY=170;
   roundRect(ctx, 64, pillY, pillW, pillH, 28);
@@ -709,7 +709,7 @@ function paintRecap(ctx, W, H){
 
   /* angka hero: selisih (dihemat/defisit) */
   const heroLabel = net>=0 ? 'BERHASIL DIHEMAT PERIODE INI' : 'DEFISIT PERIODE INI';
-  ctx.font='700 30px Inter, sans-serif';
+  ctx.font='700 30px Poppins, sans-serif';
   ctx.fillStyle='rgba(255,255,255,.65)';
   ctx.textAlign='center';
   ctx.fillText(heroLabel, W/2, 380);
@@ -725,11 +725,11 @@ function paintRecap(ctx, W, H){
   /* top 3 amplop pengeluaran */
   let y=statY+statH+70;
   ctx.textAlign='left'; ctx.textBaseline='alphabetic';
-  ctx.font='700 34px "Bricolage Grotesque"'; ctx.fillStyle='#fff';
+  ctx.font='700 34px "Poppins"'; ctx.fillStyle='#fff';
   ctx.fillText('Top Amplop Pengeluaran', 64, y);
   y+=50;
   if(!top3.length){
-    ctx.font='400 28px Inter, sans-serif'; ctx.fillStyle='rgba(255,255,255,.6)';
+    ctx.font='400 28px Poppins, sans-serif'; ctx.fillStyle='rgba(255,255,255,.6)';
     ctx.fillText('Belum ada pengeluaran periode ini', 64, y+20);
     y+=60;
   } else {
@@ -739,7 +739,7 @@ function paintRecap(ctx, W, H){
       const barW=Math.max(24, amt/maxAmt*barMaxW);
       roundRect(ctx, 64, y, barMaxW, 64, 16); ctx.fillStyle='rgba(255,255,255,.10)'; ctx.fill();
       roundRect(ctx, 64, y, barW, 64, 16); ctx.fillStyle='rgba(255,255,255,.22)'; ctx.fill();
-      ctx.font='600 30px Inter, sans-serif'; ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='middle';
+      ctx.font='600 30px Poppins, sans-serif'; ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='middle';
       ctx.fillText(e.em+' '+e.name, 84, y+32);
       const amtText= hide? MASK_AMT : rpFmt(amt);
       ctx.textAlign='right';
@@ -752,12 +752,12 @@ function paintRecap(ctx, W, H){
   /* streak hari mencatat */
   y+=30;
   roundRect(ctx, 64, y, W-128, 100, 20); ctx.fillStyle='rgba(255,255,255,.10)'; ctx.fill();
-  ctx.font='700 32px "Bricolage Grotesque"'; ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.font='700 32px "Poppins"'; ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='middle';
   ctx.fillText('📆 '+daysRecorded+' hari mencatat transaksi', 84, y+50);
   ctx.textBaseline='alphabetic';
 
   /* watermark */
-  ctx.font='600 26px Inter, sans-serif';
+  ctx.font='600 26px Poppins, sans-serif';
   ctx.fillStyle='rgba(255,255,255,.55)';
   ctx.textAlign='center';
   ctx.fillText('✉️ Amplop — atur uang dengan sistem amplop', W/2, H-70);

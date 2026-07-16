@@ -19,21 +19,21 @@
 }
 *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent}
 body{
-  font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+  font-family:'Poppins',system-ui,-apple-system,sans-serif;
   background:var(--paper); color:var(--text); font-size:15px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
   padding-bottom:calc(78px + env(safe-area-inset-bottom));
 }
-h1,h2,h3,.disp{font-family:'Fraunces',Georgia,serif; font-weight:600; letter-spacing:-.015em}
-.serif{font-family:'Fraunces',Georgia,serif}
-.num{font-family:'Fraunces',Georgia,serif; font-variant-numeric:tabular-nums; letter-spacing:-.01em}
+h1,h2,h3,.disp{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-weight:600; letter-spacing:-.015em}
+.serif{font-family:'Poppins',system-ui,-apple-system,sans-serif}
+.num{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:-.01em}
 
 /* ===== logo (dipakai di sidebar & topbar mobile) ===== */
 .logo-mark{width:30px; height:23px; border-radius:6px; position:relative; flex:none;
   background:linear-gradient(160deg,#F3EDDF,#E4DAC2); box-shadow:inset 0 0 0 1px rgba(29,35,56,.15)}
 .logo-mark::before{content:''; position:absolute; inset:0; clip-path:polygon(0 0,100% 0,50% 62%);
   background:linear-gradient(180deg,var(--brass-bright),var(--brass)); border-radius:6px 6px 0 0}
-.logo-name{font-family:'Fraunces',serif; font-weight:700; font-size:18px; color:var(--ink)}
+.logo-name{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-weight:700; font-size:18px; color:var(--ink)}
 .logo-name em{font-style:normal; color:var(--brass)}
 .logo-row{display:flex; align-items:center; gap:9px}
 
@@ -96,7 +96,7 @@ h1,h2,h3,.disp{font-family:'Fraunces',Georgia,serif; font-weight:600; letter-spa
   background:linear-gradient(180deg,rgba(201,160,91,.16),rgba(201,160,91,0));
   clip-path:polygon(0 0,100% 0,50% 78%); pointer-events:none}
 .hero .eyebrow{font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:#9BA0B8; margin-bottom:10px}
-.hero .amount{font-family:'Fraunces',serif; font-weight:600; font-size:clamp(32px,8vw,52px); letter-spacing:-.02em; line-height:1.05}
+.hero .amount{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-weight:600; font-size:clamp(32px,8vw,52px); letter-spacing:-.02em; line-height:1.05}
 .hero .amount span{font-size:.55em; color:#9BA0B8; font-weight:500; margin-right:6px}
 .hero-chips{display:flex; flex-wrap:wrap; gap:10px; margin-top:18px}
 .chip{display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px; font-size:12.5px;
@@ -111,29 +111,29 @@ h1,h2,h3,.disp{font-family:'Fraunces',Georgia,serif; font-weight:600; letter-spa
 .hero-stat .k i{width:8px; height:8px; border-radius:50%; flex:none; display:inline-block}
 .hero-stat.in .k i{background:#6FB08D}
 .hero-stat.out .k i{background:#D08A7C}
-.hero-stat .v{font-family:'Fraunces',serif; font-size:18px; font-weight:600; margin-top:4px}
+.hero-stat .v{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-size:18px; font-weight:600; margin-top:4px}
 .hero-stat.in .v{color:#A9D3BC}
 .hero-stat.out .v{color:#E8B7AC}
 
-h2.section{font-family:'Fraunces',serif; font-weight:600; font-size:18px; color:var(--ink);
+h2.section{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-weight:600; font-size:18px; color:var(--ink);
   margin:22px 0 12px; display:flex; align-items:baseline; justify-content:space-between; gap:12px}
 h2.section:first-child{margin-top:0}
-h2.section .link{font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; color:var(--brass);
+h2.section .link{font-family:'Poppins',sans-serif; font-size:13px; font-weight:700; color:var(--brass);
   text-decoration:none; background:none; border:none; cursor:pointer; padding:0}
 h2.section .link:hover{text-decoration:underline}
-h2.section .section-sub{font-family:'Plus Jakarta Sans',sans-serif; font-size:12.5px; font-weight:600; color:var(--muted)}
+h2.section .section-sub{font-family:'Poppins',sans-serif; font-size:12.5px; font-weight:600; color:var(--muted)}
 
 .stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:14px}
 .stat{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow)}
 .stat .k{font-size:11.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
-.stat .v{font-family:'Fraunces',serif; font-size:20px; font-weight:600; color:var(--ink); margin-top:6px; letter-spacing:-.01em}
+.stat .v{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-size:20px; font-weight:600; color:var(--ink); margin-top:6px; letter-spacing:-.01em}
 .stat .v.pos{color:var(--sage)}
 .stat .v.neg{color:var(--clay)}
 .card{background:var(--card); border-radius:var(--r); padding:16px; box-shadow:var(--shadow); margin-bottom:14px}
-.card h2{font-family:'Fraunces',serif; font-weight:600; font-size:16.5px; color:var(--ink);
+.card h2{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-weight:600; font-size:16.5px; color:var(--ink);
   display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px}
-.card h2 small{font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; color:var(--muted); font-size:12px}
-details.card summary{cursor:pointer; list-style:none; font-family:'Fraunces',serif; font-weight:600; font-size:16.5px; color:var(--ink);
+.card h2 small{font-family:'Poppins',sans-serif; font-weight:600; color:var(--muted); font-size:12px}
+details.card summary{cursor:pointer; list-style:none; font-family:'Poppins',system-ui,-apple-system,sans-serif; font-weight:600; font-size:16.5px; color:var(--ink);
   display:flex; justify-content:space-between; align-items:center}
 details.card summary::-webkit-details-marker{display:none}
 details.card summary::after{content:'▾'; color:var(--muted); font-size:12px; font-weight:700}
@@ -169,7 +169,7 @@ details.card hr{border:none; border-top:1px solid var(--line); margin:16px 0}
 .env-card.over .env-seal{background:radial-gradient(circle at 35% 30%,#D08A7C,#B2503F 70%)}
 .env-name{font-weight:700; font-size:14.5px; color:var(--ink); display:flex; align-items:center; gap:7px;
   margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.env-left{font-family:'Fraunces',serif; font-size:19px; font-weight:600; color:var(--ink); letter-spacing:-.01em}
+.env-left{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-size:19px; font-weight:600; color:var(--ink); letter-spacing:-.01em}
 .env-left.neg{color:var(--clay)}
 .env-of{font-size:12px; color:var(--muted); margin-top:1px}
 .meter{height:6px; border-radius:99px; background:#EFEADD; margin-top:14px; overflow:hidden}
@@ -186,7 +186,7 @@ details.card hr{border:none; border-top:1px solid var(--line); margin:16px 0}
 .bar i.warn{background:var(--kraft)} .bar i.over{background:var(--red)}
 /* ===== Cicilan: ringkasan beban & kartu pinjaman ===== */
 .loan-sum{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap}
-.loan-sum .t b{font-family:'Fraunces',serif; font-size:22px; color:var(--ink)}
+.loan-sum .t b{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-size:22px; color:var(--ink)}
 .loan-sum .t span{font-size:12.5px; color:var(--muted); display:block}
 .loan-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-top:16px}
 .loan-card{padding:22px 24px; margin-bottom:0; cursor:pointer}
@@ -194,7 +194,7 @@ details.card hr{border:none; border-top:1px solid var(--line); margin:16px 0}
 .loan-head b{font-size:16px; color:var(--ink)}
 .loan-head .sub{font-size:12.5px; color:var(--muted)}
 .loan-meta{display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; color:var(--muted); margin-top:10px}
-.loan-meta b{font-family:'Fraunces',serif; color:var(--ink); font-size:14px}
+.loan-meta b{font-family:'Poppins',system-ui,-apple-system,sans-serif; color:var(--ink); font-size:14px}
 .strip{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
   padding:11px 14px; margin-bottom:10px; box-shadow:var(--shadow)}
 .strip .ic{font-size:19px; flex-shrink:0}
@@ -210,7 +210,7 @@ details.card hr{border:none; border-top:1px solid var(--line); margin:16px 0}
 .bill-row + .bill-row{border-top:1px solid var(--line)}
 .date-badge{width:42px; height:46px; border-radius:12px; flex:none; background:var(--paper); border:1px solid var(--line);
   display:flex; flex-direction:column; align-items:center; justify-content:center}
-.date-badge b{font-family:'Fraunces',serif; font-size:16px; color:var(--ink); line-height:1}
+.date-badge b{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-size:16px; color:var(--ink); line-height:1}
 .date-badge span{font-size:9px; font-weight:700; letter-spacing:.1em; color:var(--muted); margin-top:2px; text-transform:uppercase}
 .bill-info{flex:1; min-width:0}
 .bill-info b{font-size:14px; color:var(--ink)}
@@ -245,7 +245,7 @@ details.card hr{border:none; border-top:1px solid var(--line); margin:16px 0}
 .tx-info{flex:1; min-width:0}
 .tx-info b{font-size:14.5px; color:var(--ink); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .tx-info span{font-size:12.5px; color:var(--muted)}
-.tx-amt{font-family:'Fraunces',serif; font-weight:600; font-size:16px; white-space:nowrap}
+.tx-amt{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-weight:600; font-size:16px; white-space:nowrap}
 .tx-amt.out{color:var(--ink)}
 .tx-amt.in{color:var(--sage)}
 .tx-del{border:none; background:none; color:#C7C2B4; font-size:15px; cursor:pointer; padding:4px; flex:none;
@@ -281,7 +281,7 @@ input.f:focus, select.f:focus{outline:none; border-color:var(--primary)}
 .alloc-row + .alloc-row{border-top:1px solid var(--line)}
 .alloc-row .name{flex:1; min-width:120px; font-weight:600; font-size:14.5px; color:var(--ink); display:flex; align-items:center; gap:10px}
 .alloc-row .name i{font-style:normal; font-size:17px}
-.alloc-input{width:104px; text-align:right; font-family:'Fraunces',serif; font-size:15px; font-weight:600;
+.alloc-input{width:104px; text-align:right; font-family:'Poppins',system-ui,-apple-system,sans-serif; font-size:15px; font-weight:600;
   border:1px solid var(--line); border-radius:10px; padding:9px 12px; background:var(--paper); color:var(--ink); outline:none}
 .alloc-input:focus{border-color:var(--brass); background:#fff}
 .alloc-input.zero{color:var(--muted); font-weight:500}
@@ -293,7 +293,7 @@ input.f:focus, select.f:focus{outline:none; border-color:var(--primary)}
 .alloc-summary{display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:18px 22px;
   margin:14px -16px -16px; background:linear-gradient(180deg,#FBF9F3,#F4EFE3); border-top:1px solid var(--line);
   border-radius:0 0 var(--r) var(--r)}
-.alloc-summary .cell b{display:block; font-family:'Fraunces',serif; font-size:19px; color:var(--ink)}
+.alloc-summary .cell b{display:block; font-family:'Poppins',system-ui,-apple-system,sans-serif; font-size:19px; color:var(--ink)}
 .alloc-summary .cell span{font-size:11.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
 .alloc-summary .cell.ok b{color:var(--sage)}
 .alloc-summary .cell.warn b{color:var(--clay)}
@@ -303,8 +303,8 @@ input.f:focus, select.f:focus{outline:none; border-color:var(--primary)}
 .env-usage-row + .env-usage-row{border-top:1px dashed var(--line)}
 .env-usage-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; gap:12px}
 .env-usage-head b{font-size:14px; color:var(--ink); font-weight:600}
-.env-usage-head .amt{font-family:'Fraunces',serif; font-size:15px; font-weight:600; color:var(--ink)}
-.env-usage-head .amt small{color:var(--muted); font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:12px}
+.env-usage-head .amt{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-size:15px; font-weight:600; color:var(--ink)}
+.env-usage-head .amt small{color:var(--muted); font-family:'Poppins',sans-serif; font-weight:600; font-size:12px}
 .env-usage-head .amt.over{color:var(--clay)}
 .env-usage-bar{height:8px; border-radius:99px; background:#EFEADD; overflow:hidden}
 .env-usage-bar i{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#2B3352,var(--ink))}
@@ -316,7 +316,7 @@ input.f:focus, select.f:focus{outline:none; border-color:var(--primary)}
 .wallet-row + .wallet-row{border-top:1px solid var(--line)}
 .wallet-row .w b{font-size:14.5px; color:var(--ink); display:block}
 .wallet-row .w span{font-size:12px; color:var(--muted)}
-.wallet-row .amt{font-family:'Fraunces',serif; font-size:17px; font-weight:600; color:var(--ink)}
+.wallet-row .amt{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-size:17px; font-weight:600; color:var(--ink)}
 .wallet-row .amt.zero{color:var(--muted); font-weight:500}
 .wallet-row .amt.neg{color:var(--clay)}
 
@@ -418,7 +418,7 @@ input.f:focus, select.f:focus{outline:none; border-color:var(--primary)}
 .modal h3{font-size:17px; font-weight:800; display:flex; justify-content:space-between; align-items:center}
 .modal h3 button{border:none; background:var(--paper); width:30px; height:30px; border-radius:50%; font-size:14px; cursor:pointer}
 .modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px}
-.modal-head h3{font-family:'Fraunces',serif; font-weight:600; font-size:20px; color:var(--ink)}
+.modal-head h3{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-weight:600; font-size:20px; color:var(--ink)}
 .modal-x{width:34px; height:34px; border-radius:50%; border:1px solid var(--line); background:var(--paper);
   color:var(--ink); cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; flex:none}
 .modal-x:hover{background:var(--line)}
@@ -447,7 +447,7 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
 }
 @keyframes sheet{from{transform:translateY(40px); opacity:.6}to{transform:none; opacity:1}}
 .empty{text-align:center; color:var(--muted); font-size:13.5px; padding:22px 10px}
-.empty b{display:block; font-family:'Bricolage Grotesque'; font-size:14.5px; color:var(--ink); margin-bottom:3px}
+.empty b{display:block; font-family:'Poppins',sans-serif; font-size:14.5px; color:var(--ink); margin-bottom:3px}
 .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(96px + env(safe-area-inset-bottom));
   background:var(--deep); color:#fff; font-size:13px; font-weight:600; padding:10px 18px; border-radius:99px;
   z-index:50; opacity:0; pointer-events:none; transition:opacity .25s}
