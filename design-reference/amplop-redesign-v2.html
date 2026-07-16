@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amplop — Redesign v2 (lengkap)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1D2338;
+  --ink-soft:#2B3352;
+  --paper:#F6F3EC;
+  --card:#FFFFFF;
+  --line:#E9E3D6;
+  --muted:#8A8577;
+  --text:#2A2A26;
+  --brass:#A97E3F;
+  --brass-bright:#C9A05B;
+  --brass-soft:#F1E7D4;
+  --sage:#3E7256;
+  --sage-soft:#E7F0EA;
+  --clay:#B2503F;
+  --clay-soft:#F7E9E5;
+  --radius:18px;
+  --shadow:0 1px 2px rgba(29,35,56,.05), 0 8px 24px -12px rgba(29,35,56,.12);
+  --shadow-lg:0 2px 4px rgba(29,35,56,.06), 0 20px 48px -20px rgba(29,35,56,.25);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  background:var(--paper);color:var(--text);
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.serif{font-family:'Fraunces',Georgia,serif}
+.num{font-family:'Fraunces',Georgia,serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+button{font-family:inherit}
+.view{display:none}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ====== LOGO ====== */
+.logo-mark{
+  width:34px;height:26px;border-radius:6px;position:relative;flex:none;
+  background:linear-gradient(160deg,#F3EDDF,#E4DAC2);
+  box-shadow:inset 0 0 0 1px rgba(29,35,56,.15);
+}
+.logo-mark::before{
+  content:"";position:absolute;inset:0;
+  clip-path:polygon(0 0,100% 0,50% 62%);
+  background:linear-gradient(180deg,#C9A05B,#A97E3F);
+  border-radius:6px 6px 0 0;
+}
+.logo-name{font-family:'Fraunces',serif;font-weight:700;font-size:21px;color:var(--ink)}
+.logo-name b{color:var(--brass)}
+.logo-row{display:flex;align-items:center;gap:10px}
+
+/* ============================================================
+   LANDING PAGE
+============================================================ */
+.land-head{
+  position:sticky;top:0;z-index:40;
+  background:rgba(246,243,236,.85);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.land-head-in{max-width:1080px;margin:0 auto;padding:16px 28px;display:flex;align-items:center;justify-content:space-between}
+.btn-ink{
+  background:var(--ink);color:#F6F3EC;border:none;border-radius:12px;
+  font-weight:700;font-size:14px;padding:11px 22px;cursor:pointer;
+  transition:transform .15s;
+}
+.btn-ink:hover{transform:translateY(-1px)}
+.btn-gold{
+  background:linear-gradient(180deg,#C9A05B,#A97E3F);color:#241A08;
+  border:none;border-radius:14px;font-weight:800;font-size:15px;padding:14px 28px;cursor:pointer;
+  box-shadow:0 10px 24px -8px rgba(169,126,63,.7), inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .15s;
+}
+.btn-gold:hover{transform:translateY(-1px)}
+.btn-ghost{
+  background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;
+  font-weight:700;font-size:15px;padding:14px 24px;cursor:pointer;box-shadow:var(--shadow);
+}
+.land-hero{max-width:1080px;margin:0 auto;padding:72px 28px 40px;display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center}
+.pill{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--brass-soft);color:var(--brass);border:1px solid #E4D6B8;
+  font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:999px;margin-bottom:20px;
+}
+.land-hero h1{
+  font-family:'Fraunces',serif;font-weight:600;font-size:clamp(34px,4.6vw,52px);
+  line-height:1.12;color:var(--ink);letter-spacing:-.015em;
+}
+.land-hero h1 em{font-style:italic;color:var(--brass)}
+.land-hero p.lede{font-size:16.5px;color:#5C574A;margin:20px 0 28px;max-width:44ch}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+.hero-note{font-size:12.5px;color:var(--muted);margin-top:14px}
+/* phone mock */
+.phone{
+  width:min(300px,100%);margin:0 auto;border-radius:36px;padding:14px;
+  background:linear-gradient(160deg,#2B3352,#1D2338);
+  box-shadow:var(--shadow-lg), inset 0 0 0 1px rgba(255,255,255,.08);
+  transform:rotate(2deg);
+}
+.phone-screen{background:var(--paper);border-radius:26px;overflow:hidden;padding-bottom:18px}
+.phone-top{background:var(--ink);color:#F6F3EC;padding:16px 18px 20px}
+.phone-top .k{font-size:9px;font-weight:700;letter-spacing:.14em;color:#9BA0B8;text-transform:uppercase}
+.phone-top .v{font-family:'Fraunces',serif;font-size:26px;font-weight:600;margin-top:3px}
+.phone-envs{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 0}
+.p-env{
+  position:relative;background:#fff;border:1px solid var(--line);border-radius:13px;
+  padding:26px 11px 11px;overflow:hidden;
+}
+.p-env::before{content:"";position:absolute;top:0;left:0;right:0;height:19px;background:linear-gradient(180deg,#F0EADC,#E7DFCB);border-bottom:1px solid var(--line)}
+.p-env::after{content:"";position:absolute;top:0;left:0;right:0;height:19px;clip-path:polygon(0 0,100% 0,50% 100%);background:#DFD3B6}
+.p-env b{font-size:10.5px;color:var(--ink);display:block}
+.p-env span{font-family:'Fraunces',serif;font-size:14px;font-weight:600;color:var(--ink)}
+.land-sec{max-width:1080px;margin:0 auto;padding:56px 28px}
+.land-sec .eyebrow{font-size:11.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);text-align:center}
+.land-sec h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,3.4vw,36px);color:var(--ink);text-align:center;margin:12px auto 8px;max-width:22ch;letter-spacing:-.01em}
+.land-sec p.sub{text-align:center;color:#5C574A;max-width:52ch;margin:0 auto}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:38px}
+.feat{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 24px;box-shadow:var(--shadow);
+}
+.feat .fi{
+  width:44px;height:44px;border-radius:13px;background:var(--brass-soft);
+  display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:16px;
+}
+.feat b{font-size:15.5px;color:var(--ink);display:block;margin-bottom:6px}
+.feat p{font-size:13.5px;color:#6B665A}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:38px;counter-reset:step}
+.step{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 24px;box-shadow:var(--shadow);position:relative;counter-increment:step;
+}
+.step::before{
+  content:counter(step,decimal-leading-zero);
+  font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--brass);
+  display:inline-flex;width:38px;height:38px;border-radius:50%;
+  border:1.5px solid #E0CFA9;align-items:center;justify-content:center;margin-bottom:16px;
+}
+.step b{font-size:15.5px;color:var(--ink);display:block;margin-bottom:6px}
+.step p{font-size:13.5px;color:#6B665A}
+.land-cta{
+  max-width:1080px;margin:20px auto 72px;padding:0 28px;
+}
+.land-cta-in{
+  position:relative;overflow:hidden;text-align:center;
+  background:linear-gradient(150deg,#232A47,#181D30);
+  border-radius:28px;padding:60px 32px;color:#F6F3EC;box-shadow:var(--shadow-lg);
+}
+.land-cta-in::before{
+  content:"";position:absolute;top:-1px;left:50%;transform:translateX(-50%);
+  width:520px;height:300px;
+  background:linear-gradient(180deg,rgba(201,160,91,.18),rgba(201,160,91,0));
+  clip-path:polygon(0 0,100% 0,50% 80%);pointer-events:none;
+}
+.land-cta-in h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(24px,3vw,34px);letter-spacing:-.01em;position:relative}
+.land-cta-in p{color:#B9BDCE;margin:12px auto 26px;max-width:46ch;position:relative}
+.land-foot{border-top:1px solid var(--line);text-align:center;padding:24px;font-size:12.5px;color:var(--muted)}
+
+/* ============================================================
+   AUTH
+============================================================ */
+.auth-wrap{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:
+    radial-gradient(900px 500px at 80% -10%, rgba(201,160,91,.14), transparent 60%),
+    linear-gradient(150deg,#232A47 0%,#1D2338 60%,#161B2C 100%);
+}
+.auth-card{
+  width:min(420px,100%);background:var(--card);border-radius:24px;
+  padding:34px 32px 30px;box-shadow:var(--shadow-lg);
+  animation:fade .3s ease;
+}
+.auth-back{
+  display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;
+  color:var(--muted);text-decoration:none;margin-bottom:22px;background:none;border:none;cursor:pointer;
+}
+.auth-back:hover{color:var(--ink)}
+.auth-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px}
+.auth-sub{text-align:center;font-size:14px;color:#6B665A;margin-bottom:26px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:7px;letter-spacing:.02em}
+.input, select.input{
+  width:100%;border:1.5px solid var(--line);border-radius:13px;
+  padding:13px 15px;font:inherit;font-size:14.5px;color:var(--text);
+  background:var(--paper);outline:none;
+  transition:border-color .15s, background .15s, box-shadow .15s;
+  appearance:none;
+}
+select.input{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A8577' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 15px center;padding-right:42px;
+}
+.input:focus{border-color:var(--brass);background:#fff;box-shadow:0 0 0 4px rgba(169,126,63,.12)}
+.input::placeholder{color:#B3AE9E}
+.input-wrap{position:relative}
+.input-wrap .eye{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;
+}
+.btn-primary{
+  width:100%;background:var(--ink);color:#F6F3EC;border:none;border-radius:14px;
+  font-weight:800;font-size:15px;padding:15px;cursor:pointer;margin-top:6px;
+  box-shadow:0 10px 24px -10px rgba(29,35,56,.5);
+  transition:transform .15s, background .15s;
+}
+.btn-primary:hover{transform:translateY(-1px);background:var(--ink-soft)}
+.auth-links{display:flex;justify-content:center;gap:18px;margin-top:20px;font-size:13.5px;font-weight:700;flex-wrap:wrap}
+.auth-links button{background:none;border:none;color:var(--brass);cursor:pointer;font:inherit;font-weight:700;font-size:13.5px}
+.auth-links button:hover{text-decoration:underline}
+
+/* ============================================================
+   APP SHELL  (same system as v1)
+============================================================ */
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+.sidebar{
+  background:var(--ink);color:#EDEAE0;padding:28px 20px;
+  display:flex;flex-direction:column;gap:8px;position:sticky;top:0;height:100vh;
+}
+.sidebar .logo-row{padding:0 8px 24px}
+.sidebar .logo-name{color:#F6F3EC}
+.btn-record{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(180deg,#C9A05B,#A97E3F);color:#241A08;
+  font-weight:700;font-size:14px;border:none;border-radius:14px;padding:13px 16px;cursor:pointer;
+  box-shadow:0 8px 20px -8px rgba(169,126,63,.7), inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .15s;margin-bottom:18px;
+}
+.btn-record:hover{transform:translateY(-1px)}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav-item{
+  display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;
+  color:#B9B4A4;font-weight:600;font-size:14.5px;cursor:pointer;border:none;
+  background:transparent;text-align:left;width:100%;transition:background .15s,color .15s;
+}
+.nav-item svg{width:19px;height:19px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-item:hover{color:#F6F3EC;background:rgba(255,255,255,.06)}
+.nav-item.active{color:#F6F3EC;background:rgba(255,255,255,.1)}
+.nav-item.active svg{stroke:#C9A05B}
+.nav-label{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#6E6A5C;padding:16px 12px 6px}
+.sidebar-foot{margin-top:auto;padding:14px 12px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(140deg,#C9A05B,#7A5A2B);display:flex;align-items:center;justify-content:center;font-weight:700;color:#241A08;font-size:13px;flex:none}
+.sidebar-foot .who{font-size:12.5px;line-height:1.3;overflow:hidden}
+.sidebar-foot .who b{display:block;color:#EDEAE0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sync{display:inline-flex;align-items:center;gap:5px;color:#8B8776;font-size:11.5px;font-weight:600}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#5D9C7B;box-shadow:0 0 0 3px rgba(93,156,123,.2)}
+
+.main{padding:32px 40px 96px;max-width:1060px;width:100%;margin:0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}
+.period{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px;box-shadow:var(--shadow)}
+.period button{width:32px;height:32px;border-radius:50%;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.period button:hover{background:var(--paper)}
+.period .label{font-weight:700;font-size:14px;padding:0 10px;color:var(--ink);white-space:nowrap}
+.period .label small{display:block;font-weight:600;font-size:10.5px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;line-height:1;margin-bottom:2px}
+.m-gear{display:none}
+
+.page{display:none;animation:fade .25s ease}
+.page.active{display:block}
+h2.section{font-family:'Fraunces',serif;font-weight:600;font-size:19px;color:var(--ink);margin:34px 0 14px;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h2.section:first-child{margin-top:0}
+h2.section a,h2.section button.link{font-family:'Plus Jakarta Sans';font-size:13px;font-weight:700;color:var(--brass);text-decoration:none;background:none;border:none;cursor:pointer}
+h2.section a:hover,h2.section button.link:hover{text-decoration:underline}
+
+/* hero */
+.hero{position:relative;overflow:hidden;background:linear-gradient(150deg,#232A47 0%,#1D2338 55%,#181D30 100%);border-radius:24px;padding:34px 36px 30px;color:#F6F3EC;box-shadow:var(--shadow-lg)}
+.hero::before{content:"";position:absolute;top:-1px;right:-40px;width:340px;height:230px;background:linear-gradient(180deg,rgba(201,160,91,.16),rgba(201,160,91,0));clip-path:polygon(0 0,100% 0,50% 78%);pointer-events:none}
+.hero .eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#9BA0B8;margin-bottom:10px}
+.hero .amount{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(38px,5vw,52px);letter-spacing:-.02em;line-height:1.05}
+.hero .amount span{font-size:.55em;color:#9BA0B8;font-weight:500;margin-right:6px}
+.hero-chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#D8D4C6}
+.chip.gold{background:rgba(201,160,91,.16);border-color:rgba(201,160,91,.35);color:#E4C88F}
+.chip b{color:#fff;font-weight:700}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:26px;background:rgba(255,255,255,.1);border-radius:16px;overflow:hidden}
+.hero-stat{background:rgba(255,255,255,.05);padding:16px 20px}
+.hero-stat .k{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9BA0B8;display:flex;align-items:center;gap:7px}
+.hero-stat .k i{width:8px;height:8px;border-radius:50%;flex:none}
+.hero-stat.in .k i{background:#6FB08D}
+.hero-stat.out .k i{background:#D08A7C}
+.hero-stat .v{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-top:4px}
+.hero-stat.in .v{color:#A9D3BC}
+.hero-stat.out .v{color:#E8B7AC}
+
+/* envelope cards */
+.env-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.env-card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:52px 20px 20px;box-shadow:var(--shadow);overflow:hidden;transition:transform .18s, box-shadow .18s}
+.env-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.env-flap{position:absolute;top:0;left:0;right:0;height:40px;background:linear-gradient(180deg,#F0EADC,#E7DFCB);border-bottom:1px solid var(--line)}
+.env-flap::after{content:"";position:absolute;inset:0;clip-path:polygon(0 0,100% 0,50% 100%);background:linear-gradient(180deg,#EBE2CE,#DFD3B6);filter:drop-shadow(0 1px 1px rgba(29,35,56,.08))}
+.env-seal{position:absolute;top:26px;left:50%;transform:translateX(-50%);width:26px;height:26px;border-radius:50%;z-index:2;background:radial-gradient(circle at 35% 30%,#D3AC66,#A97E3F 70%);box-shadow:0 2px 5px rgba(122,90,43,.4), inset 0 1px 2px rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:12px}
+.env-card.over .env-seal{background:radial-gradient(circle at 35% 30%,#D08A7C,#B2503F 70%)}
+.env-name{font-weight:700;font-size:14.5px;color:var(--ink);display:flex;align-items:center;gap:7px;margin-bottom:2px}
+.env-left{font-family:'Fraunces',serif;font-size:23px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.env-left.neg{color:var(--clay)}
+.env-of{font-size:12px;color:var(--muted);margin-top:1px}
+.meter{height:6px;border-radius:99px;background:#EFEADD;margin-top:14px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#C9A05B,#A97E3F)}
+.meter i.low{background:linear-gradient(90deg,#D9B679,#C9A05B)}
+.meter i.full{background:linear-gradient(90deg,#D08A7C,#B2503F)}
+.env-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11.5px;font-weight:600;color:var(--muted)}
+.env-foot .pct{color:var(--brass)}
+.env-card.over .env-foot .pct{color:var(--clay)}
+
+/* generic */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.pad{padding:22px 24px}
+.bill-row{display:flex;align-items:center;gap:16px;padding:16px 22px}
+.bill-row + .bill-row{border-top:1px solid var(--line)}
+.date-badge{width:46px;height:50px;border-radius:12px;flex:none;background:var(--paper);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.date-badge b{font-family:'Fraunces',serif;font-size:18px;color:var(--ink);line-height:1}
+.date-badge span{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--muted);margin-top:2px}
+.bill-info{flex:1;min-width:0}
+.bill-info b{font-size:14.5px;color:var(--ink)}
+.bill-info .sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px}
+.tag.paid{background:var(--sage-soft);color:var(--sage)}
+.tag.due{background:var(--brass-soft);color:var(--brass)}
+
+/* transaksi */
+.search{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;box-shadow:var(--shadow);margin-bottom:14px}
+.search svg{width:17px;height:17px;stroke:var(--muted);fill:none;stroke-width:2;flex:none}
+.search input{border:none;outline:none;background:transparent;font:inherit;color:var(--text);width:100%}
+.search input::placeholder{color:var(--muted)}
+.filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.filter{border:1px solid var(--line);background:var(--card);color:var(--muted);font-weight:700;font-size:13px;padding:8px 16px;border-radius:999px;cursor:pointer;transition:all .15s}
+.filter:hover{color:var(--ink)}
+.filter.active{background:var(--ink);border-color:var(--ink);color:#F6F3EC}
+.tx-day{font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:22px 4px 8px}
+.tx-day:first-of-type{margin-top:4px}
+.tx-row{display:flex;align-items:center;gap:14px;padding:14px 20px}
+.tx-row + .tx-row{border-top:1px solid var(--line)}
+.tx-ico{width:42px;height:42px;border-radius:13px;flex:none;font-size:19px;display:flex;align-items:center;justify-content:center;background:var(--paper);border:1px solid var(--line)}
+.tx-ico.in{background:var(--sage-soft);border-color:#D3E3D9}
+.tx-info{flex:1;min-width:0}
+.tx-info b{font-size:14.5px;color:var(--ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-info span{font-size:12.5px;color:var(--muted)}
+.tx-amt{font-family:'Fraunces',serif;font-weight:600;font-size:16px;white-space:nowrap}
+.tx-amt.out{color:var(--ink)}
+.tx-amt.in{color:var(--sage)}
+
+/* amplop page */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.btn-soft{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:700;font-size:13px;padding:10px 16px;border-radius:12px;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s}
+.btn-soft:hover{transform:translateY(-1px)}
+.btn-soft.primary{background:var(--ink);border-color:var(--ink);color:#F6F3EC}
+.alloc-row{display:flex;align-items:center;gap:14px;padding:13px 20px}
+.alloc-row + .alloc-row{border-top:1px solid var(--line)}
+.alloc-row .name{flex:1;font-weight:600;font-size:14.5px;color:var(--ink);display:flex;align-items:center;gap:10px}
+.alloc-row .name i{font-style:normal;font-size:17px}
+.alloc-input{width:130px;text-align:right;font-family:'Fraunces',serif;font-size:15px;font-weight:600;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--paper);color:var(--ink);outline:none;transition:border-color .15s,background .15s}
+.alloc-input:focus{border-color:var(--brass);background:#fff}
+.alloc-input.zero{color:var(--muted);font-weight:500}
+.mini-act{display:flex;gap:4px}
+.mini-act button{width:32px;height:32px;border-radius:9px;border:none;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
+.mini-act button:hover{background:var(--paper);color:var(--ink)}
+.mini-act svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.alloc-summary{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:18px 22px;background:linear-gradient(180deg,#FBF9F3,#F4EFE3);border-top:1px solid var(--line);border-radius:0 0 var(--radius) var(--radius)}
+.alloc-summary .cell b{display:block;font-family:'Fraunces',serif;font-size:19px;color:var(--ink)}
+.alloc-summary .cell span{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.alloc-summary .cell.ok b{color:var(--sage)}
+
+/* laporan */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.stat{padding:20px 22px}
+.stat .k{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:'Fraunces',serif;font-size:24px;font-weight:600;color:var(--ink);margin-top:6px;letter-spacing:-.01em}
+.stat .v.pos{color:var(--sage)}
+.bar-row{padding:13px 0}
+.bar-row + .bar-row{border-top:1px dashed var(--line)}
+.bar-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.bar-head b{font-size:14px;color:var(--ink)}
+.bar-head span{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--ink)}
+.bar{height:8px;border-radius:99px;background:#EFEADD;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#2B3352,#1D2338)}
+.wallet-row{display:flex;justify-content:space-between;align-items:center;padding:15px 22px}
+.wallet-row + .wallet-row{border-top:1px solid var(--line)}
+.wallet-row .w b{font-size:14.5px;color:var(--ink);display:block}
+.wallet-row .w span{font-size:12px;color:var(--muted)}
+.wallet-row .amt{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--ink)}
+.wallet-row .amt.zero{color:var(--muted);font-weight:500}
+.cash-chart{display:flex;align-items:flex-end;height:180px;padding:10px 8px 0}
+.cash-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.cash-bars{display:flex;align-items:flex-end;gap:5px;height:100%}
+.cash-bars i{width:14px;border-radius:6px 6px 3px 3px;display:block}
+.cash-bars .in{background:linear-gradient(180deg,#5B9878,#3E7256)}
+.cash-bars .out{background:linear-gradient(180deg,#C9A05B,#A97E3F)}
+.cash-col span{font-size:11px;font-weight:700;color:var(--muted)}
+.legend{display:flex;gap:16px;justify-content:flex-end;font-size:12px;font-weight:700;color:var(--muted);padding:0 8px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.legend .li i{background:#3E7256}
+.legend .lo i{background:#A97E3F}
+
+/* cicilan */
+.loan-sum{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.loan-sum .t b{font-family:'Fraunces',serif;font-size:22px;color:var(--ink)}
+.loan-sum .t span{font-size:12.5px;color:var(--muted);display:block}
+.loan-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.loan-card{padding:22px 24px}
+.loan-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px}
+.loan-head b{font-size:16px;color:var(--ink)}
+.loan-head .sub{font-size:12.5px;color:var(--muted)}
+.loan-meta{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;color:var(--muted);margin-top:10px}
+.loan-meta b{font-family:'Fraunces',serif;color:var(--ink);font-size:14px}
+
+/* pengaturan */
+.set-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.set-card h3{font-family:'Fraunces',serif;font-weight:600;font-size:16.5px;color:var(--ink);display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.set-card p.desc{font-size:13px;color:#6B665A;margin-bottom:14px}
+.seg{display:grid;grid-auto-flow:column;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:4px}
+.seg button{border:none;background:transparent;font-weight:700;font-size:13.5px;color:var(--muted);padding:10px 8px;border-radius:10px;cursor:pointer;transition:all .15s}
+.seg button.active{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.seg-note{font-size:12.5px;color:var(--muted);margin-top:10px}
+.preset{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid var(--line);background:var(--paper);border-radius:13px;padding:13px 16px;font-weight:700;font-size:14px;color:var(--ink);cursor:pointer;transition:all .15s}
+.preset:hover{background:var(--brass-soft);border-color:#E0CFA9}
+.preset + .preset{margin-top:8px}
+.acct{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.acct .who b{display:block;font-size:14.5px;color:var(--ink)}
+.acct .who span{font-size:12.5px;color:var(--muted)}
+.btn-out{border:1px solid var(--line);background:var(--card);color:var(--clay);font-weight:700;font-size:13px;padding:9px 16px;border-radius:11px;cursor:pointer}
+.btn-out:hover{background:var(--clay-soft);border-color:#E7C7BF}
+
+/* ============================================================
+   MODALS
+============================================================ */
+.overlay{
+  position:fixed;inset:0;z-index:100;display:none;
+  align-items:center;justify-content:center;padding:22px;
+  background:rgba(24,29,48,.55);backdrop-filter:blur(5px);
+}
+.overlay.open{display:flex}
+.modal{
+  width:min(440px,100%);max-height:min(88vh,760px);overflow:auto;
+  background:var(--card);border-radius:24px;padding:26px 26px 24px;
+  box-shadow:var(--shadow-lg);animation:pop .22s ease;position:relative;
+}
+.modal::before{ /* flap accent */
+  content:"";position:absolute;top:0;left:0;right:0;height:5px;
+  background:linear-gradient(90deg,#C9A05B,#A97E3F);border-radius:24px 24px 0 0;
+}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-head h3{font-family:'Fraunces',serif;font-weight:600;font-size:20px;color:var(--ink)}
+.modal-x{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.modal-x:hover{background:var(--line)}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-danger{background:var(--clay-soft);color:var(--clay);border:none;border-radius:14px;font-weight:800;font-size:15px;padding:15px 22px;cursor:pointer}
+.btn-danger:hover{background:#F1DBD4}
+.modal-actions{display:flex;gap:10px;margin-top:6px}
+.modal-actions .btn-primary{margin-top:0}
+.emoji-input{width:74px;text-align:center;font-size:22px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* mobile nav */
+.bottom-nav{display:none}
+.fab{display:none}
+.m-logo{display:none}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media (max-width:960px){
+  .land-hero{grid-template-columns:1fr;gap:40px;padding-top:48px;text-align:center}
+  .land-hero p.lede{margin-left:auto;margin-right:auto}
+  .hero-cta{justify-content:center}
+  .feat-grid,.steps{grid-template-columns:1fr}
+  .set-grid{grid-template-columns:1fr}
+  .loan-grid{grid-template-columns:1fr}
+}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .main{padding:20px 18px 120px}
+  .topbar{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,var(--paper) 78%,rgba(246,243,236,0));margin:-20px -18px 18px;padding:14px 18px 12px}
+  .m-logo{display:flex}
+  .m-logo .logo-mark{width:30px;height:23px}
+  .m-logo .logo-name{font-size:18px}
+  .m-gear{display:flex;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+  .m-gear svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .hero{padding:26px 22px 24px;border-radius:20px}
+  .hero-stat{padding:13px 16px}
+  .hero-stat .v{font-size:18px}
+  .env-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .env-card{padding:46px 15px 16px}
+  .env-left{font-size:19px}
+  .alloc-input{width:104px}
+  .cash-bars i{width:9px}
+  .bottom-nav{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:rgba(29,35,56,.94);backdrop-filter:blur(12px);border-radius:20px;padding:8px;box-shadow:0 16px 40px -12px rgba(29,35,56,.5)}
+  .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;border:none;color:#9BA0B8;font-weight:700;font-size:10px;padding:8px 4px;border-radius:14px;cursor:pointer;transition:color .15s,background .15s}
+  .bnav-item svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .bnav-item.active{color:#E4C88F;background:rgba(201,160,91,.14)}
+  .fab{display:flex;position:fixed;right:20px;bottom:88px;z-index:50;width:56px;height:56px;border-radius:18px;border:none;cursor:pointer;background:linear-gradient(180deg,#C9A05B,#A97E3F);color:#241A08;align-items:center;justify-content:center;box-shadow:0 12px 28px -8px rgba(169,126,63,.75), inset 0 1px 0 rgba(255,255,255,.35)}
+  .fab svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+}
+@media (max-width:640px){
+  .overlay{align-items:flex-end;padding:0}
+  .modal{width:100%;max-height:92vh;border-radius:24px 24px 0 0;animation:sheet .26s ease}
+  @keyframes sheet{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+  .land-head-in{padding:14px 18px}
+  .land-sec{padding:44px 18px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     VIEW: LANDING
+============================================================ -->
+<div class="view active" id="view-landing">
+  <header class="land-head">
+    <div class="land-head-in">
+      <div class="logo-row"><div class="logo-mark"></div><div class="logo-name">Amplop<b>.</b></div></div>
+      <button class="btn-ink" onclick="showView('login')">Masuk</button>
+    </div>
+  </header>
+
+  <section class="land-hero">
+    <div>
+      <span class="pill">✉️ Sistem amplop, versi digital</span>
+      <h1>Atur uang bulananmu <em>tanpa pusing</em>, cukup dengan amplop.</h1>
+      <p class="lede">Bagi penghasilanmu ke amplop-amplop di awal bulan, belanja dari amplopnya, dan langsung tahu berapa yang masih aman dipakai — setiap hari, tanpa hitung manual.</p>
+      <div class="hero-cta">
+        <button class="btn-gold" onclick="showView('daftar')">Mulai sekarang →</button>
+        <button class="btn-ghost">Lihat cara kerjanya</button>
+      </div>
+      <div class="hero-note">Gratis untuk mulai. Daftar dengan email &amp; password.</div>
+    </div>
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-top">
+          <div class="k">Total saldo semua dompet</div>
+          <div class="v">Rp4.250.000</div>
+        </div>
+        <div class="phone-envs">
+          <div class="p-env"><b>🍚 Makan</b><span>Rp620rb</span></div>
+          <div class="p-env"><b>🚌 Transport</b><span>Rp180rb</span></div>
+          <div class="p-env"><b>🛒 Belanja</b><span>Rp410rb</span></div>
+          <div class="p-env"><b>🎮 Hiburan</b><span>Rp90rb</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="land-sec">
+    <div class="eyebrow">Fitur</div>
+    <h2>Semua yang kamu butuhkan untuk mengatur keuangan pribadi</h2>
+    <p class="sub">Sederhana, tapi lengkap — dibuat khusus untuk kebiasaan finansial harian.</p>
+    <div class="feat-grid">
+      <div class="feat"><div class="fi">✉️</div><b>Sistem Amplop</b><p>Bagi uangmu ke amplop sesuai kebutuhan (makan, transport, hiburan, dll) di awal bulan.</p></div>
+      <div class="feat"><div class="fi">👛</div><b>Multi Dompet</b><p>Kelola saldo bank, tunai, dan e-wallet sekaligus dalam satu tampilan yang rapi.</p></div>
+      <div class="feat"><div class="fi">🗓️</div><b>Pengingat Tagihan</b><p>Catat tagihan rutin seperti listrik dan internet, dan jangan sampai telat bayar lagi.</p></div>
+      <div class="feat"><div class="fi">📊</div><b>Laporan Otomatis</b><p>Lihat arus kas, pengeluaran per amplop, dan saldo tiap dompet dalam sekejap.</p></div>
+      <div class="feat"><div class="fi">☁️</div><b>Sinkron ke Cloud</b><p>Data tersimpan otomatis dan tersinkron di semua perangkatmu, tanpa perlu backup manual.</p></div>
+      <div class="feat"><div class="fi">💳</div><b>Pelacak Cicilan</b><p>Pantau progres cicilan dan tahu berapa persen penghasilanmu yang terpakai tiap bulan.</p></div>
+    </div>
+  </section>
+
+  <section class="land-sec">
+    <div class="eyebrow">Cara kerja</div>
+    <h2>Tiga langkah sederhana</h2>
+    <p class="sub">Metode yang sudah terbukti puluhan tahun — sekarang dalam bentuk aplikasi.</p>
+    <div class="steps">
+      <div class="step"><b>Isi saldo dompetmu</b><p>Tambahkan bank, tunai, dan e-wallet beserta saldo awalnya.</p></div>
+      <div class="step"><b>Isi amplop di awal bulan</b><p>Tentukan jatah tiap kebutuhan — makan, transport, tagihan, dan lainnya.</p></div>
+      <div class="step"><b>Catat tiap pengeluaran</b><p>Pilih amplopnya saat mencatat transaksi. Sisa amplop dihitung otomatis.</p></div>
+    </div>
+  </section>
+
+  <div class="land-cta">
+    <div class="land-cta-in">
+      <h2>Siap atur uangmu dengan lebih tenang?</h2>
+      <p>Tidak perlu kartu kredit. Cukup masuk dengan email dan mulai isi amplop pertamamu hari ini.</p>
+      <button class="btn-gold" onclick="showView('daftar')">Masuk / Daftar gratis →</button>
+    </div>
+  </div>
+
+  <footer class="land-foot">✉️ Amplop — atur uang dengan sistem amplop. © 2026</footer>
+</div>
+
+<!-- ============================================================
+     VIEW: AUTH (login / daftar / reset)
+============================================================ -->
+<div class="view" id="view-login">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <button class="auth-back" onclick="showView('landing')">← Kembali ke beranda</button>
+      <div class="auth-logo"><div class="logo-mark"></div><div class="logo-name">Amplop<b>.</b></div></div>
+      <p class="auth-sub">Masuk ke akun Amplop kamu.</p>
+      <div class="field">
+        <label>Email</label>
+        <input class="input" type="email" placeholder="nama@email.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <input class="input" type="password" placeholder="••••••••">
+          <button class="eye" aria-label="Tampilkan password">👁</button>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="showView('app')">Masuk</button>
+      <div class="auth-links">
+        <button onclick="showView('daftar')">Belum punya akun? Daftar</button>
+        <button onclick="showView('reset')">Lupa password?</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="view" id="view-daftar">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <button class="auth-back" onclick="showView('landing')">← Kembali ke beranda</button>
+      <div class="auth-logo"><div class="logo-mark"></div><div class="logo-name">Amplop<b>.</b></div></div>
+      <p class="auth-sub">Buat akun baru dengan email &amp; password.</p>
+      <div class="field">
+        <label>Email</label>
+        <input class="input" type="email" placeholder="nama@email.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <input class="input" type="password" placeholder="Minimal 6 karakter">
+          <button class="eye" aria-label="Tampilkan password">👁</button>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="showView('app')">Daftar</button>
+      <div class="auth-links">
+        <button onclick="showView('login')">Sudah punya akun? Masuk</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="view" id="view-reset">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <button class="auth-back" onclick="showView('landing')">← Kembali ke beranda</button>
+      <div class="auth-logo"><div class="logo-mark"></div><div class="logo-name">Amplop<b>.</b></div></div>
+      <p class="auth-sub">Masukkan email akunmu. Kami kirim link untuk membuat password baru.</p>
+      <div class="field">
+        <label>Email</label>
+        <input class="input" type="email" placeholder="nama@email.com">
+      </div>
+      <button class="btn-primary">Kirim link reset</button>
+      <div class="auth-links">
+        <button onclick="showView('login')">Kembali ke Masuk</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     VIEW: APP
+============================================================ -->
+<div class="view" id="view-app">
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo-row"><div class="logo-mark"></div><div class="logo-name">Amplop<b>.</b></div></div>
+    <button class="btn-record" onclick="openModal('modal-tx')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Catat Transaksi
+    </button>
+    <nav class="nav">
+      <button class="nav-item active" data-page="beranda" onclick="go('beranda',this)">
+        <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>Beranda
+      </button>
+      <button class="nav-item" data-page="transaksi" onclick="go('transaksi',this)">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Transaksi
+      </button>
+      <button class="nav-item" data-page="amplop" onclick="go('amplop',this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3.5 7 12 13.5 20.5 7"/></svg>Amplop
+      </button>
+      <button class="nav-item" data-page="laporan" onclick="go('laporan',this)">
+        <svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Laporan
+      </button>
+      <div class="nav-label">Lainnya</div>
+      <button class="nav-item" data-page="cicilan" onclick="go('cicilan',this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.5h18"/></svg>Cicilan
+      </button>
+      <button class="nav-item" data-page="pengaturan" onclick="go('pengaturan',this)">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14.2 3h-4l-.4 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.4 2.7h4l.4-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg>Pengaturan
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="avatar">A</div>
+      <div class="who">
+        <b>arifhr24@gmail.com</b>
+        <span class="sync"><i class="sync-dot"></i>Tersimpan di cloud</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="m-logo logo-row"><div class="logo-mark"></div><div class="logo-name">Amplop<b>.</b></div></div>
+      <div class="period">
+        <button aria-label="Periode sebelumnya">‹</button>
+        <div class="label"><small>Periode gajian</small>25 Jun – 24 Jul</div>
+        <button aria-label="Periode berikutnya">›</button>
+      </div>
+      <button class="m-gear" onclick="go('pengaturan')" aria-label="Pengaturan">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14.2 3h-4l-.4 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2l.4 2.7h4l.4-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg>
+      </button>
+    </div>
+
+    <!-- ===== BERANDA ===== -->
+    <section class="page active" id="page-beranda">
+      <div class="hero">
+        <div class="eyebrow">Total saldo semua dompet</div>
+        <div class="amount"><span>Rp</span>3.114.167</div>
+        <div class="hero-chips">
+          <span class="chip gold">✦ Aman dipakai <b>Rp180.017</b> /hari</span>
+          <span class="chip">10 hari tersisa periode ini</span>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat in"><div class="k"><i></i>Masuk bulan ini</div><div class="v num">Rp7.250.000</div></div>
+          <div class="hero-stat out"><div class="k"><i></i>Keluar bulan ini</div><div class="v num">Rp4.135.833</div></div>
+        </div>
+      </div>
+
+      <h2 class="section">Tagihan terdekat <button class="link" onclick="go('pengaturan')">Kelola</button></h2>
+      <div class="card">
+        <div class="bill-row">
+          <div class="date-badge"><b>20</b><span>TGL</span></div>
+          <div class="bill-info"><b>Internet</b><div class="sub">Rp286.000 · Hiburan · Bank Utama</div></div>
+          <span class="tag paid">✓ Lunas</span>
+        </div>
+      </div>
+
+      <h2 class="section">Amplop periode ini <button class="link" onclick="go('amplop')">Lihat semua</button></h2>
+      <div class="env-grid">
+        <div class="env-card" onclick="openModal('modal-editamplop')" style="cursor:pointer">
+          <div class="env-flap"></div><div class="env-seal">🍚</div>
+          <div class="env-name">Makan</div>
+          <div class="env-left num">Rp1.383.000</div>
+          <div class="env-of">dari Rp1.500.000</div>
+          <div class="meter"><i class="low" style="width:8%"></i></div>
+          <div class="env-foot"><span>terpakai 8%</span><span class="pct">sisa 92%</span></div>
+        </div>
+        <div class="env-card">
+          <div class="env-flap"></div><div class="env-seal">🏠</div>
+          <div class="env-name">Rumah &amp; Tagihan</div>
+          <div class="env-left num">Rp0</div>
+          <div class="env-of">dari Rp2.000.000</div>
+          <div class="meter"><i style="width:100%"></i></div>
+          <div class="env-foot"><span>terpakai 100%</span><span class="pct">habis</span></div>
+        </div>
+        <div class="env-card over">
+          <div class="env-flap"></div><div class="env-seal">🎮</div>
+          <div class="env-name">Hiburan</div>
+          <div class="env-left num neg">−Rp286.000</div>
+          <div class="env-of">dari Rp0 · tidak dianggarkan</div>
+          <div class="meter"><i class="full" style="width:100%"></i></div>
+          <div class="env-foot"><span>melebihi jatah</span><span class="pct">over</span></div>
+        </div>
+        <div class="env-card">
+          <div class="env-flap"></div><div class="env-seal">💳</div>
+          <div class="env-name">Cicilan</div>
+          <div class="env-left num">Rp417.167</div>
+          <div class="env-of">dari Rp2.150.000</div>
+          <div class="meter"><i style="width:81%"></i></div>
+          <div class="env-foot"><span>terpakai 81%</span><span class="pct">sisa 19%</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TRANSAKSI ===== -->
+    <section class="page" id="page-transaksi">
+      <div class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="text" placeholder="Cari keterangan, amplop, atau dompet…">
+      </div>
+      <div class="filters">
+        <button class="filter active">Semua</button><button class="filter">Keluar</button>
+        <button class="filter">Masuk</button><button class="filter">Transfer</button>
+      </div>
+      <div class="tx-day">Hari ini · 15 Jul</div>
+      <div class="card">
+        <div class="tx-row"><div class="tx-ico">🎮</div><div class="tx-info"><b>Internet</b><span>Hiburan · Bank Utama</span></div><div class="tx-amt out num">−Rp286.000</div></div>
+      </div>
+      <div class="tx-day">Kemarin · 14 Jul</div>
+      <div class="card">
+        <div class="tx-row"><div class="tx-ico">🍚</div><div class="tx-info"><b>Maakan di bebeb</b><span>Makan · Bank Utama</span></div><div class="tx-amt out num">−Rp17.000</div></div>
+        <div class="tx-row"><div class="tx-ico">💳</div><div class="tx-info"><b>iPhone</b><span>Cicilan · Bank Utama</span></div><div class="tx-amt out num">−Rp895.833</div></div>
+        <div class="tx-row"><div class="tx-ico">💳</div><div class="tx-info"><b>iPad</b><span>Cicilan · Bank Utama</span></div><div class="tx-amt out num">−Rp837.000</div></div>
+      </div>
+      <div class="tx-day">13 Jul</div>
+      <div class="card">
+        <div class="tx-row"><div class="tx-ico">🍚</div><div class="tx-info"><b>Makan</b><span>Makan · Bank Utama</span></div><div class="tx-amt out num">−Rp100.000</div></div>
+        <div class="tx-row"><div class="tx-ico">🏠</div><div class="tx-info"><b>Kontrakan</b><span>Rumah &amp; Tagihan · Bank Utama</span></div><div class="tx-amt out num">−Rp2.000.000</div></div>
+      </div>
+      <div class="tx-day">12 Jul</div>
+      <div class="card">
+        <div class="tx-row"><div class="tx-ico in">💰</div><div class="tx-info"><b>Gaji</b><span>Pemasukan · Bank Utama</span></div><div class="tx-amt in num">+Rp7.250.000</div></div>
+      </div>
+    </section>
+
+    <!-- ===== AMPLOP ===== -->
+    <section class="page" id="page-amplop">
+      <div class="toolbar">
+        <button class="btn-soft primary">＋ Amplop baru</button>
+        <button class="btn-soft">⧉ Salin bulan lalu</button>
+        <button class="btn-soft">⇄ Pindah dana</button>
+      </div>
+      <div class="card">
+        <div class="alloc-row"><div class="name"><i>🍚</i>Makan</div><input class="alloc-input num" value="1.500.000"><div class="mini-act"><button title="Edit" onclick="openModal('modal-editamplop')"><svg viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button><button title="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/></svg></button></div></div>
+        <div class="alloc-row"><div class="name"><i>🏠</i>Rumah &amp; Tagihan</div><input class="alloc-input num" value="2.000.000"><div class="mini-act"><button title="Edit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button><button title="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/></svg></button></div></div>
+        <div class="alloc-row"><div class="name"><i>💳</i>Cicilan</div><input class="alloc-input num" value="2.150.000"><div class="mini-act"><button title="Edit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button><button title="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/></svg></button></div></div>
+        <div class="alloc-row"><div class="name"><i>🚌</i>Transportasi</div><input class="alloc-input num zero" value="0"><div class="mini-act"><button title="Edit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button><button title="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/></svg></button></div></div>
+        <div class="alloc-row"><div class="name"><i>🛒</i>Belanja</div><input class="alloc-input num zero" value="0"><div class="mini-act"><button title="Edit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button><button title="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/></svg></button></div></div>
+        <div class="alloc-row"><div class="name"><i>🎮</i>Hiburan</div><input class="alloc-input num zero" value="0"><div class="mini-act"><button title="Edit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button><button title="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/></svg></button></div></div>
+        <div class="alloc-row"><div class="name"><i>💊</i>Kesehatan</div><input class="alloc-input num zero" value="0"><div class="mini-act"><button title="Edit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button><button title="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/></svg></button></div></div>
+        <div class="alloc-row"><div class="name"><i>🐷</i>Tabungan</div><input class="alloc-input num zero" value="0"><div class="mini-act"><button title="Edit"><svg viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button><button title="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13"/></svg></button></div></div>
+        <div class="alloc-summary">
+          <div class="cell"><span>Total diisi</span><b class="num">Rp5.650.000</b></div>
+          <div class="cell"><span>Pemasukan bulan ini</span><b class="num">Rp7.250.000</b></div>
+          <div class="cell ok"><span>Belum dialokasikan</span><b class="num">Rp1.600.000</b></div>
+        </div>
+      </div>
+
+      <h2 class="section">Sisa per amplop</h2>
+      <div class="card pad">
+        <div class="bar-row"><div class="bar-head"><b>🍚 Makan</b><span class="num">Rp117.000 <small style="color:var(--muted);font-family:'Plus Jakarta Sans';font-weight:600">/ 1.500.000</small></span></div><div class="bar"><i style="width:8%"></i></div></div>
+        <div class="bar-row"><div class="bar-head"><b>🏠 Rumah &amp; Tagihan</b><span class="num">Rp2.000.000 <small style="color:var(--muted);font-family:'Plus Jakarta Sans';font-weight:600">/ 2.000.000</small></span></div><div class="bar"><i style="width:100%;background:linear-gradient(90deg,#C9A05B,#A97E3F)"></i></div></div>
+        <div class="bar-row"><div class="bar-head"><b>🎮 Hiburan</b><span class="num" style="color:var(--clay)">Rp286.000 <small style="color:var(--muted);font-family:'Plus Jakarta Sans';font-weight:600">/ 0</small></span></div><div class="bar"><i style="width:100%;background:linear-gradient(90deg,#D08A7C,#B2503F)"></i></div></div>
+        <div class="bar-row"><div class="bar-head"><b>💳 Cicilan</b><span class="num">Rp1.732.833 <small style="color:var(--muted);font-family:'Plus Jakarta Sans';font-weight:600">/ 2.150.000</small></span></div><div class="bar"><i style="width:81%"></i></div></div>
+      </div>
+    </section>
+
+    <!-- ===== LAPORAN ===== -->
+    <section class="page" id="page-laporan">
+      <div class="stat-grid">
+        <div class="card stat"><div class="k">Pemasukan</div><div class="v pos num">Rp7.250.000</div></div>
+        <div class="card stat"><div class="k">Pengeluaran</div><div class="v num">Rp4.135.833</div></div>
+        <div class="card stat"><div class="k">Selisih (cashflow)</div><div class="v pos num">Rp3.114.167</div></div>
+        <div class="card stat"><div class="k">Rata-rata / hari</div><div class="v num">Rp196.944</div></div>
+      </div>
+      <h2 class="section">Pengeluaran per amplop</h2>
+      <div class="card pad">
+        <div class="bar-row"><div class="bar-head"><b>🏠 Rumah &amp; Tagihan</b><span class="num">Rp2.000.000</span></div><div class="bar"><i style="width:100%"></i></div></div>
+        <div class="bar-row"><div class="bar-head"><b>💳 Cicilan</b><span class="num">Rp1.732.833</span></div><div class="bar"><i style="width:87%"></i></div></div>
+        <div class="bar-row"><div class="bar-head"><b>🎮 Hiburan</b><span class="num">Rp286.000</span></div><div class="bar"><i style="width:14%"></i></div></div>
+        <div class="bar-row"><div class="bar-head"><b>🍚 Makan</b><span class="num">Rp117.000</span></div><div class="bar"><i style="width:6%"></i></div></div>
+      </div>
+      <h2 class="section">Arus kas 6 periode</h2>
+      <div class="card pad">
+        <div class="legend"><span class="li"><i></i>Masuk</span><span class="lo"><i></i>Keluar</span></div>
+        <div class="cash-chart">
+          <div class="cash-col"><div class="cash-bars"><i class="in" style="height:4%"></i><i class="out" style="height:4%"></i></div><span>25 Jan</span></div>
+          <div class="cash-col"><div class="cash-bars"><i class="in" style="height:4%"></i><i class="out" style="height:4%"></i></div><span>25 Feb</span></div>
+          <div class="cash-col"><div class="cash-bars"><i class="in" style="height:4%"></i><i class="out" style="height:4%"></i></div><span>25 Mar</span></div>
+          <div class="cash-col"><div class="cash-bars"><i class="in" style="height:4%"></i><i class="out" style="height:4%"></i></div><span>25 Apr</span></div>
+          <div class="cash-col"><div class="cash-bars"><i class="in" style="height:4%"></i><i class="out" style="height:4%"></i></div><span>25 Mei</span></div>
+          <div class="cash-col"><div class="cash-bars"><i class="in" style="height:100%"></i><i class="out" style="height:57%"></i></div><span>25 Jun</span></div>
+        </div>
+      </div>
+      <h2 class="section">Saldo per dompet</h2>
+      <div class="card">
+        <div class="wallet-row"><div class="w"><b>Bank Utama</b><span>Bank</span></div><div class="amt num">Rp3.114.167</div></div>
+        <div class="wallet-row"><div class="w"><b>Tunai</b><span>Tunai</span></div><div class="amt zero num">Rp0</div></div>
+        <div class="wallet-row"><div class="w"><b>E-Wallet</b><span>E-Wallet</span></div><div class="amt zero num">Rp0</div></div>
+      </div>
+    </section>
+
+    <!-- ===== CICILAN ===== -->
+    <section class="page" id="page-cicilan">
+      <div class="card pad loan-sum">
+        <div class="t">
+          <span>Total beban cicilan bulan ini</span>
+          <b class="num">Rp1.732.833</b>
+          <span style="margin-top:2px">24% dari pemasukan periode ini</span>
+        </div>
+        <button class="btn-soft primary" onclick="openModal('modal-cicilan')">＋ Cicilan baru</button>
+      </div>
+      <div class="loan-grid">
+        <div class="card loan-card">
+          <div class="loan-head">
+            <div><b>iPhone</b><div class="sub">Kartu Kredit · Bank Utama</div></div>
+            <span class="tag paid">✓ Lunas bulan ini</span>
+          </div>
+          <div class="meter" style="margin-top:16px"><i style="width:83%"></i></div>
+          <div class="loan-meta"><span>10/12 terbayar · jatuh tempo tiap tgl 1</span><b>Rp895.833 /bln</b></div>
+        </div>
+        <div class="card loan-card">
+          <div class="loan-head">
+            <div><b>iPad</b><div class="sub">Kartu Kredit · Bank Utama</div></div>
+            <span class="tag paid">✓ Lunas bulan ini</span>
+          </div>
+          <div class="meter" style="margin-top:16px"><i class="low" style="width:8%"></i></div>
+          <div class="loan-meta"><span>1/12 terbayar · jatuh tempo tiap tgl 1</span><b>Rp837.000 /bln</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PENGATURAN ===== -->
+    <section class="page" id="page-pengaturan">
+      <div class="set-grid">
+        <div>
+          <div class="card pad set-card">
+            <h3>👤 Akun</h3>
+            <div class="acct">
+              <div class="who"><b>arifhr24@gmail.com</b><span>Data tersinkron otomatis di semua perangkatmu</span></div>
+              <button class="btn-out">Keluar</button>
+            </div>
+          </div>
+
+          <div class="card pad set-card" style="margin-top:16px">
+            <h3>✉️ Preset Amplop</h3>
+            <p class="desc">Tambahkan amplop siap pakai sesuai gaya hidupmu. Amplop yang sudah ada tidak akan ditimpa.</p>
+            <button class="preset">🎓 Anak Kos</button>
+            <button class="preset">💼 Pekerja Kantoran</button>
+            <button class="preset">👨‍👩‍👧 Keluarga Muda</button>
+          </div>
+
+          <div class="card pad set-card" style="margin-top:16px">
+            <h3>🗓️ Tagihan Rutin <button class="btn-soft" onclick="openModal('modal-tagihan')" style="box-shadow:none">＋ Tambah</button></h3>
+            <div class="bill-row" style="padding:12px 0 0">
+              <div class="date-badge"><b>20</b><span>TGL</span></div>
+              <div class="bill-info"><b>Internet</b><div class="sub">Rp286.000 · Hiburan · Bank Utama</div></div>
+              <span style="color:var(--muted)">›</span>
+            </div>
+            <p class="desc" style="margin:14px 0 0">Tagihan muncul di Beranda menjelang jatuh tempo. Tekan "Bayar" untuk mencatatnya otomatis sebagai transaksi.</p>
+          </div>
+        </div>
+
+        <div>
+          <div class="card pad set-card">
+            <h3>🗓️ Periode Gajian</h3>
+            <p class="desc">Amplop, laporan, dan "aman dipakai per hari" dihitung mengikuti periode ini — bukan cuma tanggal 1 s.d. akhir bulan.</p>
+            <div class="seg">
+              <button>Tgl 1</button><button class="active">Tgl 25</button><button>Tgl 27</button><button>Lainnya</button>
+            </div>
+            <div class="seg-note">Periode saat ini: <b style="color:var(--ink)">25 Jun – 24 Jul</b></div>
+          </div>
+
+          <div class="card set-card" style="margin-top:16px">
+            <div class="pad" style="padding-bottom:0"><h3>👛 Dompet <button class="btn-soft" onclick="openModal('modal-dompet')" style="box-shadow:none">＋ Tambah</button></h3></div>
+            <div class="wallet-row"><div class="w"><b>Bank Utama</b><span>Bank · saldo awal Rp0</span></div><div class="amt num">Rp3.114.167</div></div>
+            <div class="wallet-row"><div class="w"><b>Tunai</b><span>Tunai · saldo awal Rp0</span></div><div class="amt zero num">Rp0</div></div>
+            <div class="wallet-row"><div class="w"><b>E-Wallet</b><span>E-Wallet · saldo awal Rp0</span></div><div class="amt zero num">Rp0</div></div>
+          </div>
+
+          <div class="card pad set-card" style="margin-top:16px">
+            <h3>💾 Data &amp; Ekspor</h3>
+            <p class="desc" style="margin-bottom:0">Unduh seluruh transaksi dan amplop sebagai CSV, atau impor dari perangkat lain.</p>
+          </div>
+
+          <div class="card pad set-card" style="margin-top:16px">
+            <h3>Tentang</h3>
+            <p class="desc" style="margin-bottom:0">Amplop v1.0 — atur uang dengan sistem amplop. Isi amplop di awal bulan, belanja dari amplopnya, dan tahu persis berapa yang aman dipakai setiap hari.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- mobile nav -->
+<button class="fab" aria-label="Catat transaksi" onclick="openModal('modal-tx')">
+  <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+<nav class="bottom-nav">
+  <button class="bnav-item active" data-page="beranda" onclick="go('beranda',this)"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>Beranda</button>
+  <button class="bnav-item" data-page="transaksi" onclick="go('transaksi',this)"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Transaksi</button>
+  <button class="bnav-item" data-page="amplop" onclick="go('amplop',this)"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3.5 7 12 13.5 20.5 7"/></svg>Amplop</button>
+  <button class="bnav-item" data-page="laporan" onclick="go('laporan',this)"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Laporan</button>
+</nav>
+</div><!-- /view-app -->
+
+<!-- ============================================================
+     MODALS
+============================================================ -->
+<div class="overlay" id="modal-tx" onclick="closeOnBackdrop(event,this)">
+  <div class="modal">
+    <div class="modal-head"><h3>Catat Transaksi</h3><button class="modal-x" onclick="closeModal('modal-tx')">✕</button></div>
+    <div class="field">
+      <div class="seg"><button class="active">Keluar</button><button>Masuk</button><button>Transfer</button></div>
+    </div>
+    <div class="row-2">
+      <div class="field"><label>Tanggal</label><input class="input" type="date" value="2026-07-15"></div>
+      <div class="field"><label>Nominal (Rp)</label><input class="input num" inputmode="numeric" placeholder="0"></div>
+    </div>
+    <div class="field"><label>Keterangan</label><input class="input" placeholder="cth: Belanja mingguan, Gaji"></div>
+    <div class="field"><label>Dari amplop</label>
+      <select class="input"><option>🍚 Makan</option><option>🏠 Rumah &amp; Tagihan</option><option>🎮 Hiburan</option><option>💳 Cicilan</option></select>
+    </div>
+    <div class="field"><label>Dompet</label>
+      <select class="input"><option>Bank Utama</option><option>Tunai</option><option>E-Wallet</option></select>
+    </div>
+    <button class="btn-primary" onclick="closeModal('modal-tx')">Simpan transaksi</button>
+  </div>
+</div>
+
+<div class="overlay" id="modal-dompet" onclick="closeOnBackdrop(event,this)">
+  <div class="modal">
+    <div class="modal-head"><h3>Dompet Baru</h3><button class="modal-x" onclick="closeModal('modal-dompet')">✕</button></div>
+    <div class="field"><label>Nama dompet</label><input class="input" placeholder="cth: Bank Utama, Tunai, E-Wallet"></div>
+    <div class="row-2">
+      <div class="field"><label>Jenis</label>
+        <select class="input"><option>Bank</option><option>Tunai</option><option>E-Wallet</option></select>
+      </div>
+      <div class="field"><label>Saldo awal (Rp)</label><input class="input num" inputmode="numeric" placeholder="0"></div>
+    </div>
+    <button class="btn-primary" onclick="closeModal('modal-dompet')">Simpan dompet</button>
+  </div>
+</div>
+
+<div class="overlay" id="modal-tagihan" onclick="closeOnBackdrop(event,this)">
+  <div class="modal">
+    <div class="modal-head"><h3>Tagihan Rutin Baru</h3><button class="modal-x" onclick="closeModal('modal-tagihan')">✕</button></div>
+    <div class="field"><label>Nama tagihan</label><input class="input" placeholder="cth: Listrik, Internet, Sewa"></div>
+    <div class="row-2">
+      <div class="field"><label>Nominal (Rp)</label><input class="input num" inputmode="numeric" placeholder="0"></div>
+      <div class="field"><label>Jatuh tempo tiap tgl</label><input class="input num" inputmode="numeric" placeholder="cth: 20"></div>
+    </div>
+    <div class="field"><label>Dibayar dari amplop</label>
+      <select class="input"><option>🏠 Rumah &amp; Tagihan</option><option>🍚 Makan</option><option>🎮 Hiburan</option></select>
+    </div>
+    <div class="field"><label>Dibayar dari dompet</label>
+      <select class="input"><option>Bank Utama</option><option>Tunai</option><option>E-Wallet</option></select>
+    </div>
+    <button class="btn-primary" onclick="closeModal('modal-tagihan')">Simpan tagihan</button>
+  </div>
+</div>
+
+<div class="overlay" id="modal-cicilan" onclick="closeOnBackdrop(event,this)">
+  <div class="modal">
+    <div class="modal-head"><h3>Cicilan Baru</h3><button class="modal-x" onclick="closeModal('modal-cicilan')">✕</button></div>
+    <div class="field"><label>Nama cicilan</label><input class="input" placeholder="cth: SPayLater — Sepatu"></div>
+    <div class="field"><label>Penyedia</label>
+      <select class="input"><option>SPayLater</option><option>Kartu Kredit</option><option>GoPayLater</option><option>Kredivo</option><option>Lainnya</option></select>
+    </div>
+    <div class="row-2">
+      <div class="field"><label>Nominal / bulan (Rp)</label><input class="input num" inputmode="numeric" placeholder="0"></div>
+      <div class="field"><label>Jumlah cicilan (kali)</label><input class="input num" inputmode="numeric" placeholder="cth: 6"></div>
+    </div>
+    <div class="row-2">
+      <div class="field"><label>Sudah terbayar</label><input class="input num" inputmode="numeric" placeholder="0"></div>
+      <div class="field"><label>Jatuh tempo tiap tgl</label><input class="input num" inputmode="numeric" placeholder="cth: 20"></div>
+    </div>
+    <div class="field"><label>Dibayar dari dompet</label>
+      <select class="input"><option>Bank Utama</option><option>Tunai</option><option>E-Wallet</option></select>
+    </div>
+    <button class="btn-primary" onclick="closeModal('modal-cicilan')">Simpan cicilan</button>
+  </div>
+</div>
+
+<div class="overlay" id="modal-editamplop" onclick="closeOnBackdrop(event,this)">
+  <div class="modal">
+    <div class="modal-head"><h3>Edit Amplop</h3><button class="modal-x" onclick="closeModal('modal-editamplop')">✕</button></div>
+    <div class="field"><label>Emoji</label><input class="input emoji-input" value="🍚"><div class="hint">Emoji ini muncul sebagai segel di kartu amplop.</div></div>
+    <div class="field"><label>Nama amplop</label><input class="input" value="Makan"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="closeModal('modal-editamplop')">Simpan</button>
+      <button class="btn-danger" onclick="closeModal('modal-editamplop')">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  window.scrollTo({top:0});
+}
+function go(page, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item,.bnav-item').forEach(b=>{
+    b.classList.toggle('active', b.dataset.page===page);
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden'}
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow=''}
+function closeOnBackdrop(e, el){if(e.target===el){el.classList.remove('open');document.body.style.overflow=''}}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(o=>{o.classList.remove('open');document.body.style.overflow=''});
+});
+</script>
+</body>
+</html>
