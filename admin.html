@@ -191,17 +191,21 @@ async function loadUsers(){
   usersCache=res.users;
   if(!usersCache.length){ wrap.innerHTML='<div class="empty">Belum ada pengguna terdaftar.</div>'; return; }
   wrap.innerHTML=`<table><thead><tr>
-    <th>Email</th><th>Daftar</th><th>Konfirmasi</th><th>Lisensi</th><th>Login Terakhir</th><th>Aksi</th>
+    <th>Email</th><th>Daftar</th><th>Konfirmasi</th><th>Lisensi</th><th>Status</th><th>Login Terakhir</th><th>Aksi</th>
   </tr></thead><tbody>${usersCache.map(u=>`
     <tr>
       <td>${esc(u.email)}</td>
       <td>${fmtDate(u.created_at)}</td>
       <td>${u.confirmed_at? '<span class="badge ok">Ya</span>':'<span class="badge no">Belum</span>'}</td>
       <td>${u.licensed? '<span class="badge ok">Pembeli</span>':'<span class="badge no">Tidak ada</span>'}</td>
+      <td>${u.banned? '<span class="badge no">Nonaktif</span>':'<span class="badge ok">Aktif</span>'}</td>
       <td>${fmtDate(u.last_sign_in_at)}</td>
       <td class="actions">
         <button class="btn ghost sm" onclick="openEdit('${u.id}')">Edit</button>
         <button class="btn ghost sm" onclick="sendReset('${esc(u.email)}', this)">Kirim Link Reset</button>
+        ${u.banned
+          ? `<button class="btn ghost sm" onclick="toggleBan('${u.id}', false, this)">Aktifkan</button>`
+          : `<button class="btn dngr sm" onclick="toggleBan('${u.id}', true, this)">Nonaktifkan</button>`}
       </td>
     </tr>`).join('')}</tbody></table>`;
 }
@@ -240,6 +244,20 @@ async function deleteUser(){
   const r=await callApi('delete', {id});
   if(!r) return;
   toast('Akun dihapus'); closeModal(); loadUsers();
+}
+async function toggleBan(id, ban, btn){
+  const u=usersCache.find(x=>x.id===id); if(!u) return;
+  const msg= ban
+    ? 'Nonaktifkan akun '+u.email+'? Pengguna ini tidak akan bisa masuk lagi sampai diaktifkan kembali.'
+    : 'Aktifkan kembali akun '+u.email+'?';
+  if(!confirm(msg)) return;
+  const original=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Memproses…'; }
+  const r=await callApi(ban?'ban':'unban', {id});
+  if(btn){ btn.disabled=false; btn.textContent=original; }
+  if(!r) return;
+  toast(ban? 'Akun dinonaktifkan ✓' : 'Akun diaktifkan kembali ✓');
+  loadUsers();
 }
 async function sendReset(email, btn){
   if(!confirm('Kirim email link reset password ke '+email+'?')) return;

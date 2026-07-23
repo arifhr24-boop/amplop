@@ -48,7 +48,8 @@ module.exports = async (req, res) => {
           confirmed_at: u.email_confirmed_at || null,
           last_sign_in_at: u.last_sign_in_at || null,
           licensed: licMap.has((u.email || '').toLowerCase()),
-          note: licMap.get((u.email || '').toLowerCase())?.note || ''
+          note: licMap.get((u.email || '').toLowerCase())?.note || '',
+          banned: !!(u.banned_until && new Date(u.banned_until) > new Date())
         }))
         .sort((a, b) => b.created_at.localeCompare(a.created_at));
       res.status(200).json({ users });
@@ -77,6 +78,27 @@ module.exports = async (req, res) => {
       const { email } = payload;
       if (!email) throw new Error('Email wajib diisi');
       const { error } = await admin.auth.resetPasswordForEmail(email, { redirectTo: SITE_URL });
+      if (error) throw error;
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    if (action === 'ban') {
+      const { id } = payload;
+      if (!id) throw new Error('id wajib diisi');
+      if (id === callerData.user.id) throw new Error('Tidak bisa menonaktifkan akun sendiri');
+      /* Supabase tidak punya "selamanya" literal — 876000 jam (~100 tahun) dipakai
+         sebagai standar de-facto untuk banned_until permanen di dokumentasi mereka. */
+      const { error } = await admin.auth.admin.updateUserById(id, { ban_duration: '876000h' });
+      if (error) throw error;
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    if (action === 'unban') {
+      const { id } = payload;
+      if (!id) throw new Error('id wajib diisi');
+      const { error } = await admin.auth.admin.updateUserById(id, { ban_duration: 'none' });
       if (error) throw error;
       res.status(200).json({ ok: true });
       return;

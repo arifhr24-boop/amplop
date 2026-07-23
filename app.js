@@ -56,6 +56,7 @@ function ensureSchema(){
   DB.settings ??= {};
   DB.settings.cycleStartDay = Math.min(28, Math.max(1, Number(DB.settings.cycleStartDay) || 1));
   DB.settings.dismissedSeasonal ??= {};
+  DB.settings.hideBalance ??= false;
   DB.debts ??= [];
 }
 
@@ -179,13 +180,18 @@ document.addEventListener('click', e=>{
 });
 
 /* ================= HOME ================= */
+function toggleBalanceHide(){
+  DB.settings.hideBalance=!DB.settings.hideBalance;
+  save(); render();
+}
 function renderHome(){
   const period=getPeriod(periodOffset), key=period.key, isCur=periodOffset===0;
   setTopbarPeriod(period);
   const total=DB.wallets.reduce((s,w)=>s+walletBalance(w.id),0);
-  document.getElementById('h-balance').textContent=rpS(total);
-  document.getElementById('h-in').textContent=rp(totIn(period));
-  document.getElementById('h-out').textContent=rp(totOut(period));
+  document.getElementById('h-balance').textContent= DB.settings.hideBalance? MASK_AMT : rpS(total);
+  document.getElementById('balance-hide-btn').innerHTML= DB.settings.hideBalance? EYE_OFF_SVG : EYE_OPEN_SVG;
+  document.getElementById('h-in').textContent= DB.settings.hideBalance? MASK_AMT : rp(totIn(period));
+  document.getElementById('h-out').textContent= DB.settings.hideBalance? MASK_AMT : rp(totOut(period));
 
   /* sisa amplop & aman dipakai per hari (khusus periode berjalan) */
   const alloc=allocOf(key), spent=spentByEnv(period);
@@ -376,7 +382,15 @@ function saveDebt(){
   const id=document.getElementById('db-edit-id').value;
   const data={name, provider, installmentAmount, totalInstallments, paidInstallments, dueDay, walletId, done: paidInstallments>=totalInstallments};
   if(id){ Object.assign(DB.debts.find(x=>x.id===id), data); }
-  else { ensureCicilanEnvelope(); DB.debts.push({id:uid(), ...data, createdAt:new Date().toISOString(), lastPaid:''}); }
+  else {
+    ensureCicilanEnvelope();
+    /* kalau saat dibuat sudah ada cicilan yang terbayar DAN tanggal jatuh
+       tempo bulan ini sudah lewat, anggap pembayaran periode ini sudah
+       termasuk yang disetel di "Sudah Terbayar" — supaya tidak perlu klik
+       Bayar lagi (yang akan keliru menambah hitungan jadi dobel). */
+    const alreadyPaidThisPeriod = paidInstallments>0 && dueDay<new Date().getDate();
+    DB.debts.push({id:uid(), ...data, createdAt:new Date().toISOString(), lastPaid: alreadyPaidThisPeriod? NOWKEY() : ''});
+  }
   save(); closeModal('debt-modal'); render(); toast('Cicilan disimpan ✓');
 }
 function removeDebt(id){
@@ -576,15 +590,17 @@ function quickDeleteEnv(id){
 function renderReport(){
   const period=getPeriod(periodOffset), isCur=periodOffset===0;
   setTopbarPeriod(period);
+  const hide=DB.settings.hideBalance;
+  document.getElementById('report-hide-btn').innerHTML= hide? EYE_OFF_SVG : EYE_OPEN_SVG;
   const tin=totIn(period), tout=totOut(period), net=tin-tout;
-  document.getElementById('rp-in').textContent=rp(tin);
-  document.getElementById('rp-out').textContent=rp(tout);
+  document.getElementById('rp-in').textContent= hide? MASK_AMT : rp(tin);
+  document.getElementById('rp-out').textContent= hide? MASK_AMT : rp(tout);
   const netEl=document.getElementById('rp-net');
-  netEl.textContent=rpS(net); netEl.className='v num '+(net<0?'neg':'pos');
+  netEl.textContent= hide? MASK_AMT : rpS(net); netEl.className='v num '+(net<0?'neg':'pos');
   const dim=Math.round((period.end-period.start)/86400000)+1;
   const now=new Date(), today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   const div=isCur? Math.round((today-period.start)/86400000)+1 : dim;
-  document.getElementById('rp-avg').textContent=rp(tout/Math.max(div,1));
+  document.getElementById('rp-avg').textContent= hide? MASK_AMT : rp(tout/Math.max(div,1));
 
   const spent=spentByEnv(period);
   const rows=DB.envelopes.filter(e=>spent[e.id]>0).sort((a,b)=>spent[b.id]-spent[a.id]);
