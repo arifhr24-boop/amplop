@@ -424,16 +424,6 @@ function payDebt(id){
 
 /* ================= TRANSAKSI ================= */
 let txFilter='all';
-function toggleTxDateRange(){
-  const card=document.getElementById('tx-daterange-card');
-  card.style.display= card.style.display==='none'? 'block':'none';
-}
-function clearTxDateRange(){
-  document.getElementById('tx-date-from').value='';
-  document.getElementById('tx-date-to').value='';
-  document.getElementById('tx-daterange-card').style.display='none';
-  renderTxns();
-}
 function renderTxns(){
   const period=getPeriod(periodOffset);
   setTopbarPeriod(period);
@@ -441,19 +431,24 @@ function renderTxns(){
   const dateFrom=document.getElementById('tx-date-from').value;
   const dateTo=document.getElementById('tx-date-to').value;
   const rangeActive=!!(dateFrom||dateTo);
-  const fmt=s=>{ const d=new Date(s+'T00:00'); return d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3); };
-  const rangeLabel= rangeActive? '📅 '+(dateFrom?fmt(dateFrom):'…')+' – '+(dateTo?fmt(dateTo):'…') : '📅 Tanggal';
+
+  const envSelect=document.getElementById('tx-env-filter');
+  const prevEnvVal=envSelect.value;
+  envSelect.innerHTML='<option value="">Semua Amplop</option>'
+    + DB.envelopes.map(e=>`<option value="${e.id}">${esc(e.em)} ${esc(e.name)}</option>`).join('');
+  envSelect.value= DB.envelopes.some(e=>e.id===prevEnvVal)? prevEnvVal : '';
+  const envFilterId=envSelect.value;
 
   const F=[['all','Semua'],['out','Keluar'],['in','Masuk'],['tf','Transfer']];
-  document.getElementById('tx-filters').innerHTML=F.map(([v,l])=>
-    `<button class="filter ${txFilter===v?'active':''}" onclick="txFilter='${v}';renderTxns()">${l}</button>`).join('')
-    + `<button class="filter ${rangeActive?'active':''}" id="tx-daterange-btn" onclick="toggleTxDateRange()">${rangeLabel}</button>`;
+  document.getElementById('tx-type-filters').innerHTML=F.map(([v,l])=>
+    `<button class="filter ${txFilter===v?'active':''}" onclick="txFilter='${v}';renderTxns()">${l}</button>`).join('');
 
   let list= rangeActive
     ? DB.txns.filter(t=>t.date && (!dateFrom||t.date>=dateFrom) && (!dateTo||t.date<=dateTo))
     : txnsOf(period);
   list=list.sort((a,b)=>b.date.localeCompare(a.date));
   if(txFilter!=='all') list=list.filter(t=>t.type===txFilter);
+  if(envFilterId) list=list.filter(t=>t.envId===envFilterId);
   const q=(document.getElementById('tx-search').value||'').toLowerCase().trim();
   if(q) list=list.filter(t=>
     (t.desc||'').toLowerCase().includes(q) ||
@@ -607,7 +602,7 @@ function renderReport(){
   const max=Math.max(...rows.map(e=>spent[e.id]),1);
   const el=document.getElementById('rp-envs');
   if(!rows.length){ el.innerHTML='<div class="empty"><b>Belum ada pengeluaran</b>Grafik muncul setelah ada transaksi keluar.</div>'; }
-  else el.innerHTML=rows.map(e=>`<div class="env-usage-row"><div class="env-usage-head"><b>${esc(e.em)} ${esc(e.name)}</b>
+  else el.innerHTML=rows.map(e=>`<div class="env-usage-row" style="cursor:pointer" onclick="openEnvTxModal('${e.id}')"><div class="env-usage-head"><b>${esc(e.em)} ${esc(e.name)}</b>
     <span class="amt num">${rp(spent[e.id])}</span></div>
     <div class="env-usage-bar"><i style="width:${spent[e.id]/max*100}%"></i></div></div>`).join('');
 
@@ -629,6 +624,31 @@ function renderReport(){
     return `<div class="wallet-row"><div class="w"><b>${esc(w.name)}</b><span>${esc(w.type)}</span></div>
       <div class="amt num ${b===0?'zero':b<0?'neg':''}">${rpS(b)}</div></div>`;
   }).join('');
+}
+function openEnvTxModal(envId){
+  const e=envById(envId); if(!e) return;
+  const period=getPeriod(periodOffset);
+  document.getElementById('envtx-modal-title').textContent=e.em+' '+e.name;
+  const list=txnsOf(period).filter(t=>t.envId===envId && t.type==='out').sort((a,b)=>b.date.localeCompare(a.date));
+  const el=document.getElementById('envtx-list');
+  if(!list.length){
+    el.innerHTML='<div class="empty"><b>Belum ada transaksi</b>Belum ada pengeluaran dari amplop ini periode ini.</div>';
+  } else {
+    const total=list.reduce((s,t)=>s+t.amount,0);
+    const summary=`<div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; padding:0 2px">
+      <span style="font-size:12.5px; color:var(--muted); font-weight:600">${list.length} transaksi</span>
+      <span class="num" style="font-weight:700; font-size:17px; color:var(--ink)">${rp(total)}</span>
+    </div>`;
+    el.innerHTML=summary+'<div class="card">'+list.map(t=>{
+      const d=new Date(t.date+'T00:00'), dm=d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3);
+      return `<div class="tx-row">
+        <div class="tx-ico">${esc(e.em)}</div>
+        <div class="tx-info"><b>${esc(t.desc||'(tanpa keterangan)')}</b><span>${dm} · ${esc(walletById(t.walletId)?.name||'-')}</span></div>
+        <div class="tx-amt out num">−${rp(t.amount)}</div>
+      </div>`;
+    }).join('')+'</div>';
+  }
+  document.getElementById('envtx-modal').classList.add('open');
 }
 
 /* ================= FITUR: REKAP PERIODE SHAREABLE ================= */
@@ -1400,7 +1420,33 @@ async function bootApp(){
   load(); agShow('login'); agGate(true);
 }
 bootApp();
-if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+/* ================= FITUR: AUTO-UPDATE PWA ================= */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      /* browser cuma cek update service worker sesekali (bisa ~24 jam) — cek
+         juga tiap kali app dibuka/dibawa ke depan, supaya versi baru dari
+         server ketemu lebih cepat, bukan cuma nunggu jadwal browser. */
+      reg.update().catch(()=>{});
+      document.addEventListener('visibilitychange', ()=>{
+        if(document.visibilityState==='visible') reg.update().catch(()=>{});
+      });
+    }).catch(()=>{});
+  });
+  /* begitu service worker versi baru selesai dipasang (skipWaiting+clients.claim
+     di sw.js bikin dia langsung ambil alih), reload sekali supaya HTML/CSS/JS
+     yang sedang tampil ikut jadi versi terbaru — bukan cuma service worker-nya.
+     Ditunda dulu kalau ada modal yang lagi terbuka, biar isian form tidak
+     hilang mendadak. */
+  let swUpdateApplied=false;
+  function applyPendingSwUpdate(){
+    if(swUpdateApplied) return;
+    if(document.querySelector('.modal-bg.open')){ setTimeout(applyPendingSwUpdate, 3000); return; }
+    swUpdateApplied=true;
+    window.location.reload();
+  }
+  navigator.serviceWorker.addEventListener('controllerchange', applyPendingSwUpdate);
+}
 
 /* ================= FITUR: INSTAL PWA ================= */
 let deferredInstallPrompt=null;

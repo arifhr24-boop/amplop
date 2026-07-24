@@ -178,13 +178,11 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input type="text" id="tx-search" placeholder="Cari keterangan, amplop, atau dompet…" oninput="renderTxns()">
     </div>
-    <div class="filters" id="tx-filters"></div>
-    <div class="card" id="tx-daterange-card" style="display:none">
-      <div class="row-2">
-        <div class="field"><label>Dari Tanggal</label><input class="input" type="date" id="tx-date-from" onchange="renderTxns()"></div>
-        <div class="field"><label>Sampai Tanggal</label><input class="input" type="date" id="tx-date-to" onchange="renderTxns()"></div>
-      </div>
-      <button class="btn ghost sm" onclick="clearTxDateRange()">✕ Reset ke periode berjalan</button>
+    <div class="filters" id="tx-filters">
+      <span id="tx-type-filters" style="display:contents"></span>
+      <select class="tx-mini-filter" id="tx-env-filter" onchange="renderTxns()" aria-label="Filter amplop"></select>
+      <input class="tx-mini-filter" type="date" id="tx-date-from" onchange="renderTxns()" aria-label="Dari tanggal">
+      <input class="tx-mini-filter" type="date" id="tx-date-to" onchange="renderTxns()" aria-label="Sampai tanggal">
     </div>
     <div id="tx-list"></div>
   </section>
@@ -443,6 +441,12 @@
     <button class="btn-primary" onclick="saveDebt()">Simpan</button>
     <button class="btn-danger" id="dbf-del" style="display:none" onclick="deleteDebt()">Hapus</button>
   </div>
+</div></div>
+
+<!-- envelope transactions detail modal (dari klik amplop di Laporan) -->
+<div class="modal-bg" id="envtx-modal"><div class="modal">
+  <div class="modal-head"><h3 id="envtx-modal-title">Transaksi Amplop</h3><button class="modal-x" onclick="closeModal('envtx-modal')">✕</button></div>
+  <div id="envtx-list"></div>
 </div></div>
 
 <!-- move funds modal -->

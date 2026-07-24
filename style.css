@@ -242,6 +242,13 @@ details.card hr{border:none; border-top:1px solid var(--line); margin:16px 0}
 .filter{border:1px solid var(--line); background:var(--card); color:var(--muted); font-weight:700; font-size:13px;
   padding:8px 16px; border-radius:999px; cursor:pointer; flex-shrink:0}
 .filter.active{background:var(--ink); border-color:var(--ink); color:#F6F3EC}
+.tx-mini-filter{-webkit-appearance:none; appearance:none; border:1px solid var(--line); background:var(--card);
+  color:var(--ink); font:inherit; font-weight:700; font-size:13px; padding:8px 14px; border-radius:999px;
+  cursor:pointer; box-shadow:var(--shadow)}
+select.tx-mini-filter{padding-right:30px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A8577' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center}
+.tx-mini-filter:focus{outline:none; border-color:var(--brass); box-shadow:0 0 0 4px rgba(169,126,63,.12)}
 .tx-day{font-size:11.5px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:22px 4px 8px}
 .tx-day:first-of-type{margin-top:4px}
 .tx-row{display:flex; align-items:center; gap:14px; padding:14px 20px}
