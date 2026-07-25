@@ -449,7 +449,9 @@ function renderTxns(){
   let list= rangeActive
     ? DB.txns.filter(t=>t.date && (!dateFrom||t.date>=dateFrom) && (!dateTo||t.date<=dateTo))
     : txnsOf(period);
-  list=list.sort((a,b)=>b.date.localeCompare(a.date));
+  /* urut tanggal terbaru dulu; untuk tanggal yang sama, transaksi yang paling
+     baru dicatat (posisinya lebih akhir di DB.txns) tampil paling atas */
+  list=list.map((t,i)=>({t,i})).sort((a,b)=>b.t.date.localeCompare(a.t.date) || b.i-a.i).map(x=>x.t);
   if(txFilter!=='all') list=list.filter(t=>t.type===txFilter);
   if(envFilterId) list=list.filter(t=>t.envId===envFilterId);
   const q=(document.getElementById('tx-search').value||'').toLowerCase().trim();
