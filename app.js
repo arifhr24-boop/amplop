@@ -431,6 +431,9 @@ function renderTxns(){
   const dateFrom=document.getElementById('tx-date-from').value;
   const dateTo=document.getElementById('tx-date-to').value;
   const rangeActive=!!(dateFrom||dateTo);
+  const txRangeLabel=document.getElementById('tx-range-label');
+  if(txRangeLabel) txRangeLabel.textContent= dateFrom&&dateTo? fmtIdDate(dateFrom)+' – '+fmtIdDate(dateTo)
+    : dateFrom? 'Sejak '+fmtIdDate(dateFrom) : dateTo? 'S.d. '+fmtIdDate(dateTo) : 'Semua Tanggal';
 
   const envSelect=document.getElementById('tx-env-filter');
   const prevEnvVal=envSelect.value;
@@ -908,6 +911,9 @@ function renderSettings(){
       <div class="bill-info"><b>${esc(b.name)}</b><div class="sub">${rp(b.amount)} · ${esc(envById(b.envId)?.name||'-')}</div></div>
       <span style="color:var(--muted)">›</span></div>`).join('')
     || '<div class="empty"><b>Belum ada tagihan rutin</b>cth: listrik, internet, sewa, cicilan.</div>';
+
+  ensureReportRangeDefaults();
+  refreshReportRangeSummary();
 }
 function openWalletModal(id=''){
   document.getElementById('wl-edit-id').value=id;
@@ -1049,38 +1055,117 @@ function resetData(){
   DB=structuredClone(seed); save(); render(); toast('Data direset');
 }
 
-/* ================= FITUR: EKSPOR EXCEL/CSV ================= */
-function onExpRangeChange(){
-  const custom=document.getElementById('exp-range').value==='custom';
-  document.getElementById('exp-custom-wrap').style.display= custom? 'block':'none';
-  if(custom){
-    const fromEl=document.getElementById('exp-from'), toEl=document.getElementById('exp-to');
-    if(!toEl.value) toEl.value=new Date().toISOString().slice(0,10);
-    if(!fromEl.value) fromEl.value=ymd(getPeriod(periodOffset).start);
+/* ================= FITUR: REPORT (EKSPOR & RESET RENTANG DATA) ================= */
+function fmtIdDate(s){ if(!s) return ''; const d=new Date(s+'T00:00'); return d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3)+' '+d.getFullYear(); }
+
+/* ---- komponen popover rentang tanggal, dipakai di Report & filter Transaksi ---- */
+function rangePresetDates(type){
+  const today=new Date();
+  if(type==='period'){ const p=getPeriod(0); return {from:ymd(p.start), to:ymd(p.end)}; }
+  if(type==='prevPeriod'){ const p=getPeriod(-1); return {from:ymd(p.start), to:ymd(p.end)}; }
+  if(type==='7d'){ const f=new Date(today); f.setDate(f.getDate()-6); return {from:ymd(f), to:ymd(today)}; }
+  if(type==='30d'){ const f=new Date(today); f.setDate(f.getDate()-29); return {from:ymd(f), to:ymd(today)}; }
+  if(type==='month'){ const f=new Date(today.getFullYear(), today.getMonth(), 1), l=new Date(today.getFullYear(), today.getMonth()+1, 0); return {from:ymd(f), to:ymd(l)}; }
+  if(type==='all'){ return {from:'2000-01-01', to:ymd(today)}; }
+  return {from:'', to:''};
+}
+function positionRangePopover(wrap){
+  const trigger=wrap.querySelector('.range-picker-trigger'), pop=wrap.querySelector('.range-popover');
+  const r=trigger.getBoundingClientRect();
+  const width=Math.min(280, window.innerWidth-24);
+  let left=r.left;
+  if(left+width>window.innerWidth-12) left=window.innerWidth-width-12;
+  if(left<12) left=12;
+  pop.style.width=width+'px';
+  pop.style.top=(r.bottom+6)+'px';
+  pop.style.left=left+'px';
+}
+function closeRangePopovers(){ document.querySelectorAll('.range-picker.open').forEach(p=>p.classList.remove('open')); }
+function toggleRangePopover(id){
+  const wrap=document.getElementById(id);
+  const willOpen=!wrap.classList.contains('open');
+  closeRangePopovers();
+  if(willOpen){ wrap.classList.add('open'); positionRangePopover(wrap); }
+}
+function closeRangePopover(id){ const el=document.getElementById(id); if(el) el.classList.remove('open'); }
+document.addEventListener('click', e=>{ if(!e.target.closest('.range-picker')) closeRangePopovers(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeRangePopovers(); });
+
+/* ---- Report (Pengaturan) ---- */
+function refreshReportRangeLabel(){
+  const from=document.getElementById('exp-from').value, to=document.getElementById('exp-to').value;
+  const label=document.getElementById('reportrange-label');
+  if(label) label.textContent= from&&to? fmtIdDate(from)+' – '+fmtIdDate(to) : 'Pilih rentang tanggal…';
+}
+function ensureReportRangeDefaults(){
+  const fromEl=document.getElementById('exp-from'), toEl=document.getElementById('exp-to');
+  if(!fromEl || !toEl) return;
+  if(!fromEl.value || !toEl.value){
+    const period=getPeriod(0);
+    fromEl.value=ymd(period.start); toEl.value=ymd(period.end);
   }
+  refreshReportRangeLabel();
+}
+function setReportRangePreset(type){
+  const {from,to}=rangePresetDates(type);
+  document.getElementById('exp-from').value=from;
+  document.getElementById('exp-to').value=to;
+  refreshReportRangeLabel();
+  refreshReportRangeSummary();
+  closeRangePopover('report-range-picker');
+}
+function onReportRangeCustomChange(){
+  refreshReportRangeLabel();
+  refreshReportRangeSummary();
+}
+
+/* ---- filter tanggal Transaksi ---- */
+function setTxRangePreset(type){
+  const {from,to}= type==='clear'? {from:'',to:''} : rangePresetDates(type);
+  document.getElementById('tx-date-from').value=from;
+  document.getElementById('tx-date-to').value=to;
+  closeRangePopover('tx-range-picker');
+  renderTxns();
 }
 function exportRangeLabel(){
-  const range=document.getElementById('exp-range').value;
-  if(range==='all') return 'Semua Data';
-  if(range==='custom'){
-    const from=document.getElementById('exp-from').value, to=document.getElementById('exp-to').value;
-    return (from||'…')+' s.d. '+(to||'…');
+  return fmtIdDate(document.getElementById('exp-from').value)+' – '+fmtIdDate(document.getElementById('exp-to').value);
+}
+function reportRangeTxns(){
+  const from=document.getElementById('exp-from').value, to=document.getElementById('exp-to').value;
+  return DB.txns.filter(t=>t.date && (!from||t.date>=from) && (!to||t.date<=to));
+}
+function refreshReportRangeSummary(){
+  const el=document.getElementById('report-range-summary'); if(!el) return;
+  const txCount=reportRangeTxns().length;
+  el.textContent= txCount? txCount+' transaksi pada rentang ini.' : 'Tidak ada transaksi tercatat pada rentang ini.';
+}
+function reportRangeAllocKeys(){
+  const from=document.getElementById('exp-from').value, to=document.getElementById('exp-to').value;
+  if(!from || !to) return [];
+  const lo=Math.min(periodOffsetForDate(from), periodOffsetForDate(to))-1;
+  const hi=Math.max(periodOffsetForDate(from), periodOffsetForDate(to))+1;
+  const keys=[];
+  for(let o=lo;o<=hi;o++){
+    const p=getPeriod(o);
+    if(ymd(p.start)>=from && ymd(p.end)<=to && DB.allocations[p.key]) keys.push(p.key);
   }
-  return getPeriod(periodOffset).label;
+  return keys;
+}
+function resetReportRange(){
+  const txList=reportRangeTxns();
+  const allocKeys=reportRangeAllocKeys();
+  if(!txList.length && !allocKeys.length){ toast('Tidak ada data untuk dihapus pada rentang ini'); return; }
+  const label=exportRangeLabel();
+  if(!confirm('Hapus '+txList.length+' transaksi'+(allocKeys.length?' dan alokasi amplop':'')+' pada rentang '+label+'? Amplop, dompet, dan cicilan itu sendiri tidak ikut terhapus.')) return;
+  if(!confirm('Yakin? Data yang sudah dihapus tidak bisa dikembalikan.')) return;
+  const ids=new Set(txList.map(t=>t.id));
+  DB.txns=DB.txns.filter(t=>!ids.has(t.id));
+  allocKeys.forEach(k=>delete DB.allocations[k]);
+  save(); render();
+  toast('Data pada rentang '+label+' dihapus ✓');
 }
 function getExportRows(){
-  const range=document.getElementById('exp-range').value;
-  let list;
-  if(range==='all'){
-    list=DB.txns.slice();
-  } else if(range==='custom'){
-    const from=document.getElementById('exp-from').value;
-    const to=document.getElementById('exp-to').value;
-    list=DB.txns.filter(t=>t.date && (!from||t.date>=from) && (!to||t.date<=to));
-  } else {
-    list=txnsOf(getPeriod(periodOffset));
-  }
-  return list.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(t=>{
+  return reportRangeTxns().slice().sort((a,b)=>a.date.localeCompare(b.date)).map(t=>{
     const jenis= t.type==='in'?'Masuk':t.type==='out'?'Keluar':'Transfer';
     const amplop= t.type==='out'? (envById(t.envId)?.name||'') : '';
     const dompet= walletById(t.walletId)?.name||'';
@@ -1089,23 +1174,6 @@ function getExportRows(){
     const nominal= t.type==='in'? t.amount : -t.amount; /* keluar & transfer sama-sama mengurangi dompet asal */
     return {tanggal:t.date, jenis, keterangan, amplop, dompet, nominal};
   });
-}
-function csvEscape(v){
-  const s=String(v??'');
-  return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
-}
-function exportCsv(){
-  const rows=getExportRows();
-  const header=['Tanggal','Jenis','Keterangan','Amplop','Dompet','Nominal'];
-  const lines=[header.join(',')];
-  rows.forEach(r=>lines.push([r.tanggal,r.jenis,r.keterangan,r.amplop,r.dompet,r.nominal].map(csvEscape).join(',')));
-  const csv='﻿'+lines.join('\r\n'); /* BOM supaya Excel Windows baca karakter Indonesia dengan benar */
-  const blob=new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='amplop-export-'+new Date().toISOString().slice(0,10)+'.csv';
-  a.click(); URL.revokeObjectURL(a.href);
-  toast('CSV diekspor ✓');
 }
 let sheetJsLoading=null;
 function loadSheetJs(){
@@ -1121,9 +1189,9 @@ function loadSheetJs(){
   return sheetJsLoading;
 }
 async function exportXlsx(){
-  toast('Menyiapkan Excel…');
+  toast('Menyiapkan laporan…');
   try{ await loadSheetJs(); }
-  catch(e){ toast('Butuh koneksi internet untuk ekspor Excel — coba Ekspor CSV'); return; }
+  catch(e){ toast('Butuh koneksi internet untuk mengunduh laporan'); return; }
   const rows=getExportRows();
   const wsTxnData=[['Tanggal','Jenis','Keterangan','Amplop','Dompet','Nominal'],
     ...rows.map(r=>[r.tanggal,r.jenis,r.keterangan,r.amplop,r.dompet,r.nominal])];
@@ -1148,8 +1216,8 @@ async function exportXlsx(){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, wsTxn, 'Transaksi');
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
-  XLSX.writeFile(wb, 'amplop-export-'+new Date().toISOString().slice(0,10)+'.xlsx');
-  toast('Excel diekspor ✓');
+  XLSX.writeFile(wb, 'amplop-report-'+new Date().toISOString().slice(0,10)+'.xlsx');
+  toast('Laporan diunduh ✓');
 }
 
 /* ================= AUTH & SYNC ================= */
@@ -1381,6 +1449,7 @@ async function startApp(session){
   USER=session.user;
   const isAdmin=(USER.email||'').toLowerCase()===ADMIN_EMAIL;
   document.querySelectorAll('.js-admin-btn').forEach(b=>{ b.style.display= isAdmin? 'flex':'none'; });
+  document.querySelectorAll('.js-admin-only').forEach(b=>{ b.style.display= isAdmin? 'block':'none'; });
   KEY='amplop_v2_'+USER.id;
   const firstRun=!localStorage.getItem(KEY);
   load();

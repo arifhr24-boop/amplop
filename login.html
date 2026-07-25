@@ -181,8 +181,22 @@
     <div class="filters" id="tx-filters">
       <span id="tx-type-filters" style="display:contents"></span>
       <select class="tx-mini-filter" id="tx-env-filter" onchange="renderTxns()" aria-label="Filter amplop"></select>
-      <input class="tx-mini-filter" type="date" id="tx-date-from" onchange="renderTxns()" aria-label="Dari tanggal">
-      <input class="tx-mini-filter" type="date" id="tx-date-to" onchange="renderTxns()" aria-label="Sampai tanggal">
+      <div class="range-picker" id="tx-range-picker">
+        <button type="button" class="tx-mini-filter range-picker-trigger" onclick="toggleRangePopover('tx-range-picker')">📅 <span id="tx-range-label">Semua Tanggal</span></button>
+        <div class="range-popover">
+          <div class="range-presets">
+            <button type="button" class="filter" onclick="setTxRangePreset('clear')">Semua Tanggal</button>
+            <button type="button" class="filter" onclick="setTxRangePreset('7d')">7 Hari Terakhir</button>
+            <button type="button" class="filter" onclick="setTxRangePreset('30d')">30 Hari Terakhir</button>
+            <button type="button" class="filter" onclick="setTxRangePreset('month')">Bulan Ini</button>
+          </div>
+          <div class="date-range-group">
+            <input type="date" id="tx-date-from" onchange="renderTxns()" aria-label="Dari tanggal">
+            <span>–</span>
+            <input type="date" id="tx-date-to" onchange="renderTxns()" aria-label="Sampai tanggal">
+          </div>
+        </div>
+      </div>
     </div>
     <div id="tx-list"></div>
   </section>
@@ -298,33 +312,47 @@
           <div id="st-wallets"></div>
         </div>
         <details class="card">
-          <summary>💾 Data &amp; Ekspor</summary>
+          <summary>📊 Report</summary>
           <div>
-            <h3 class="sub-h">📊 Ekspor ke Excel/CSV</h3>
-            <p class="hint" style="margin-top:0">Datamu tetap milikmu — bisa diekspor kapan pun jadi Excel atau CSV buat dibuka di spreadsheet (bukan buat cadangan aplikasi, lihat "Backup JSON" di bawah untuk itu).</p>
+            <p class="hint" style="margin-top:0">Pilih rentang data, lalu unduh laporannya sebagai Excel atau hapus data pada rentang itu (amplop, dompet, dan cicilan itu sendiri tidak ikut terhapus).</p>
             <label class="f">Rentang Data</label>
-            <select class="f" id="exp-range" onchange="onExpRangeChange()">
-              <option value="period">Periode ini</option>
-              <option value="all">Semua data</option>
-              <option value="custom">Pilih rentang tanggal…</option>
-            </select>
-            <div id="exp-custom-wrap" style="display:none; margin-top:10px">
-              <label class="f">Dari Tanggal</label><input class="f" type="date" id="exp-from">
-              <label class="f">Sampai Tanggal</label><input class="f" type="date" id="exp-to">
+            <div class="range-picker" id="report-range-picker" style="display:block">
+              <button type="button" class="report-range-trigger range-picker-trigger" onclick="toggleRangePopover('report-range-picker')">
+                <span>📅&nbsp; <span id="reportrange-label">Pilih rentang tanggal…</span></span>
+                <span class="car">▾</span>
+              </button>
+              <div class="range-popover">
+                <div class="range-presets">
+                  <button type="button" class="filter" onclick="setReportRangePreset('period')">Periode Ini</button>
+                  <button type="button" class="filter" onclick="setReportRangePreset('prevPeriod')">Periode Lalu</button>
+                  <button type="button" class="filter" onclick="setReportRangePreset('7d')">7 Hari Terakhir</button>
+                  <button type="button" class="filter" onclick="setReportRangePreset('30d')">30 Hari Terakhir</button>
+                  <button type="button" class="filter" onclick="setReportRangePreset('month')">Bulan Ini</button>
+                  <button type="button" class="filter" onclick="setReportRangePreset('all')">Semua Data</button>
+                </div>
+                <div class="date-range-group">
+                  <input type="date" id="exp-from" onchange="onReportRangeCustomChange()">
+                  <span>–</span>
+                  <input type="date" id="exp-to" onchange="onReportRangeCustomChange()">
+                </div>
+              </div>
             </div>
+            <p class="hint" id="report-range-summary"></p>
             <div style="display:flex; gap:8px; margin-top:12px">
-              <button class="btn ghost" style="flex:1" onclick="exportCsv()">Ekspor CSV</button>
-              <button class="btn ghost" style="flex:1" onclick="exportXlsx()">Ekspor Excel</button>
+              <button class="btn ghost" style="flex:1" onclick="exportXlsx()">⬇️ Download Report</button>
+              <button class="btn dngr" style="flex:1" onclick="resetReportRange()">🗑️ Reset</button>
             </div>
-            <hr>
-            <h3 class="sub-h">💾 Backup JSON</h3>
-            <div style="display:flex; gap:8px">
-              <button class="btn ghost" style="flex:1" onclick="exportData()">⬇️ Backup JSON</button>
-              <button class="btn ghost" style="flex:1" onclick="document.getElementById('import-file').click()">⬆️ Pulihkan JSON</button>
-              <button class="btn dngr" onclick="resetData()">Reset</button>
+            <div class="js-admin-only" style="display:none">
+              <hr>
+              <h3 class="sub-h">💾 Backup JSON</h3>
+              <div style="display:flex; gap:8px">
+                <button class="btn ghost" style="flex:1" onclick="exportData()">⬇️ Backup JSON</button>
+                <button class="btn ghost" style="flex:1" onclick="document.getElementById('import-file').click()">⬆️ Pulihkan JSON</button>
+                <button class="btn dngr" onclick="resetData()">Reset</button>
+              </div>
+              <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importData(this)">
+              <p class="hint">Untuk cadangan/pulihkan seluruh data aplikasi (bukan buat dibuka di Excel) — data juga tersinkron otomatis ke cloud.</p>
             </div>
-            <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importData(this)">
-            <p class="hint">Untuk cadangan/pulihkan seluruh data aplikasi (bukan buat dibuka di Excel) — data juga tersinkron otomatis ke cloud.</p>
           </div>
         </details>
         <div class="card">
