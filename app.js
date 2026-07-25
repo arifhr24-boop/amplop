@@ -277,7 +277,7 @@ function renderHome(){
     const meterClass= over? 'full' : (pct<40? 'low':'');
     const footLeft= over? 'melebihi jatah' : ('terpakai '+pct+'%');
     const footRight= over? 'over' : habis? 'habis' : ('sisa '+(100-pct)+'%');
-    return `<div class="env-card ${over?'over':''}" onclick="go('env')">
+    return `<div class="env-card ${over?'over':''}" onclick="openEnvTxModal('${e.id}')">
       <div class="env-flap"></div><div class="env-seal">${esc(e.em)}</div>
       <div class="env-name">${esc(e.name)}</div>
       <div class="env-left num ${over?'neg':''}">${rpS(l)}</div>
@@ -1031,6 +1031,25 @@ function delTxnFromModal(){
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); }));
 
+/* modal konfirmasi (pengganti confirm() bawaan browser, dipakai utamanya untuk aksi Reset) */
+let confirmModalResolve=null;
+function confirmModal(message, opts={}){
+  return new Promise(resolve=>{
+    confirmModalResolve=resolve;
+    document.getElementById('confirm-modal-title').textContent=opts.title||'Konfirmasi';
+    document.getElementById('confirm-modal-body').textContent=message;
+    const okBtn=document.getElementById('confirm-modal-ok');
+    okBtn.textContent=opts.okLabel||'Ya, Lanjutkan';
+    okBtn.className='btn '+(opts.danger===false?'p':'dngr');
+    document.getElementById('confirm-modal').classList.add('open');
+  });
+}
+function resolveConfirmModal(result){
+  document.getElementById('confirm-modal').classList.remove('open');
+  if(confirmModalResolve){ const r=confirmModalResolve; confirmModalResolve=null; r(result); }
+}
+document.getElementById('confirm-modal').addEventListener('click', e=>{ if(e.target.id==='confirm-modal') resolveConfirmModal(false); });
+
 /* ================= DATA ================= */
 function exportData(){
   const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
@@ -1049,9 +1068,11 @@ function importData(input){
   }catch(e){ toast('File JSON tidak valid'); } };
   r.readAsText(f); input.value='';
 }
-function resetData(){
-  if(!confirm('Hapus SEMUA data dan mulai dari awal? Tindakan ini tidak bisa dibatalkan.')) return;
-  if(!confirm('Yakin? Ekspor dulu jika ingin menyimpan cadangan.')) return;
+async function resetData(){
+  const ok=await confirmModal(
+    'Hapus SEMUA data dan mulai dari awal? Tindakan ini tidak bisa dibatalkan — ekspor dulu jika ingin menyimpan cadangan.',
+    {title:'Reset Semua Data', okLabel:'Ya, Hapus Semua'});
+  if(!ok) return;
   DB=structuredClone(seed); save(); render(); toast('Data direset');
 }
 
@@ -1151,13 +1172,16 @@ function reportRangeAllocKeys(){
   }
   return keys;
 }
-function resetReportRange(){
+async function resetReportRange(){
   const txList=reportRangeTxns();
   const allocKeys=reportRangeAllocKeys();
   if(!txList.length && !allocKeys.length){ toast('Tidak ada data untuk dihapus pada rentang ini'); return; }
   const label=exportRangeLabel();
-  if(!confirm('Hapus '+txList.length+' transaksi'+(allocKeys.length?' dan alokasi amplop':'')+' pada rentang '+label+'? Amplop, dompet, dan cicilan itu sendiri tidak ikut terhapus.')) return;
-  if(!confirm('Yakin? Data yang sudah dihapus tidak bisa dikembalikan.')) return;
+  const ok=await confirmModal(
+    'Hapus '+txList.length+' transaksi'+(allocKeys.length?' dan alokasi amplop':'')+' pada rentang '+label+'? '
+    +'Amplop, dompet, dan cicilan itu sendiri tidak ikut terhapus. Data yang sudah dihapus tidak bisa dikembalikan.',
+    {title:'Reset Data Periode', okLabel:'Ya, Hapus'});
+  if(!ok) return;
   const ids=new Set(txList.map(t=>t.id));
   DB.txns=DB.txns.filter(t=>!ids.has(t.id));
   allocKeys.forEach(k=>delete DB.allocations[k]);

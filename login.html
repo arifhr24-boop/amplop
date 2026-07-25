@@ -477,6 +477,16 @@
   <div id="envtx-list"></div>
 </div></div>
 
+<!-- confirm modal (reusable) -->
+<div class="modal-bg" id="confirm-modal"><div class="modal" style="max-width:380px">
+  <div class="modal-head"><h3 id="confirm-modal-title">Konfirmasi</h3><button class="modal-x" onclick="resolveConfirmModal(false)">✕</button></div>
+  <p id="confirm-modal-body" style="margin:0 0 18px; font-size:14.5px; color:var(--ink); line-height:1.5"></p>
+  <div style="display:flex; gap:8px">
+    <button class="btn ghost" style="flex:1" onclick="resolveConfirmModal(false)">Batal</button>
+    <button class="btn dngr" style="flex:1" id="confirm-modal-ok" onclick="resolveConfirmModal(true)">Ya, Lanjutkan</button>
+  </div>
+</div></div>
+
 <!-- move funds modal -->
 <div class="modal-bg" id="move-modal"><div class="modal">
   <h3>Pindah Dana Antar Amplop <button onclick="closeModal('move-modal')">✕</button></h3>

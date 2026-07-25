@@ -484,7 +484,7 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
 .empty b{display:block; font-family:'Poppins',sans-serif; font-size:14.5px; color:var(--ink); margin-bottom:3px}
 .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(96px + env(safe-area-inset-bottom));
   background:var(--deep); color:#fff; font-size:13px; font-weight:600; padding:10px 18px; border-radius:99px;
-  z-index:50; opacity:0; pointer-events:none; transition:opacity .25s}
+  z-index:110; opacity:0; pointer-events:none; transition:opacity .25s; max-width:calc(100vw - 32px); text-align:center}
 .toast.show{opacity:1}
 .hint{font-size:12px; color:var(--muted); margin-top:8px}
 
