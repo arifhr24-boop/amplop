@@ -230,6 +230,23 @@ details.card hr{border:none; border-top:1px solid var(--line); margin:16px 0}
 .tag.paid{background:var(--sage-soft); color:var(--sage)}
 .tag.due{background:var(--brass-soft); color:var(--brass)}
 .tag.late{background:var(--clay-soft); color:var(--clay)}
+/* FITUR: TABUNGAN TUJUAN — belum siap go-live, sengaja dikomentari seluruhnya
+.tag.ok{background:var(--sage-soft); color:var(--sage)}
+.tag.warn{background:var(--clay-soft); color:var(--clay)}
+
+.fund-card{cursor:pointer}
+.fund-head{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px}
+.fund-name{display:flex; align-items:center; gap:8px; font-family:'Poppins',system-ui,-apple-system,sans-serif; font-weight:600; font-size:14px; color:var(--ink)}
+.fund-ic{font-size:17px}
+.fund-pct{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-weight:600; font-size:13px; color:var(--brass)}
+.fund-bar i{background:linear-gradient(90deg,var(--brass-bright),var(--brass))}
+.fund-nom{display:flex; align-items:baseline; gap:8px; margin-top:10px}
+.fund-nom b{font-family:'Poppins',system-ui,-apple-system,sans-serif; font-size:16px; color:var(--ink)}
+.fund-nom span{font-size:12.5px; color:var(--muted)}
+.fund-actions{display:flex; gap:8px; margin-top:14px}
+.fund-card--open{border:1.5px dashed rgba(58,79,160,.35); background:rgba(58,79,160,.04)}
+.fund-card--open .fund-head{margin-bottom:0}
+*/
 
 /* transactions */
 .search{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line);
@@ -444,6 +461,7 @@ input.f:focus, select.f:focus{outline:none; border-color:var(--primary)}
 .modal-bg{position:fixed; inset:0; z-index:60; display:none; align-items:center; justify-content:center;
   padding:22px; background:rgba(24,29,48,.55); backdrop-filter:blur(5px)}
 .modal-bg.open{display:flex}
+#confirm-modal{z-index:65} /* selalu di atas modal lain — dipakai sebagai konfirmasi dari dalam modal lain juga */
 .modal{width:min(440px,100%); max-height:min(88vh,760px); overflow:auto; background:var(--card);
   border-radius:24px; padding:26px 26px 24px; box-shadow:var(--shadow-lg); animation:pop .22s ease; position:relative}
 .modal::before{content:''; position:absolute; top:0; left:0; right:0; height:5px;

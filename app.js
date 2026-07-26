@@ -33,6 +33,8 @@ const seed={
   settings:{cycleStartDay:1},  /* 1 = ikut bulan kalender (default/perilaku lama) */
   debts:[]          /* {id, name, provider, installmentAmount, totalInstallments, paidInstallments,
                         dueDay, walletId, createdAt, done, lastPaid:"2026-07"} */
+  // funds:[]          /* {id, name, icon, target, targetDate:"2026-12"|null, walletId, status:"active"|"done"|"archived", createdAt}
+  //                       — saldo terkumpul TIDAK disimpan di sini, selalu dihitung dari ledger (fundCollected) — FITUR: TABUNGAN TUJUAN, belum siap go-live */
 };
 
 let DB, localT=0;
@@ -58,6 +60,7 @@ function ensureSchema(){
   DB.settings.dismissedSeasonal ??= {};
   DB.settings.hideBalance ??= false;
   DB.debts ??= [];
+  // DB.funds ??= []; -- FITUR: TABUNGAN TUJUAN, belum siap go-live
 }
 
 /* ================= FITUR: SIKLUS GAJIAN ================= */
@@ -421,6 +424,277 @@ function payDebt(id){
   save(); render();
   toast(justFinished? '🎉 Cicilan lunas!' : 'Pembayaran cicilan dicatat ✓');
 }
+
+// /* ================= FITUR: TABUNGAN TUJUAN ================= */
+// const fundById=id=>DB.funds.find(f=>f.id===id);
+// function periodsBetweenDates(fromStr, toStr){
+//   const csd=cycleStartDay();
+//   const a=periodStartFor(new Date(fromStr+'T00:00'), csd);
+//   const b=periodStartFor(new Date(toStr+'T00:00'), csd);
+//   return (b.getFullYear()-a.getFullYear())*12 + (b.getMonth()-a.getMonth());
+// }
+// function fundTargetLabel(targetDate){
+//   if(!targetDate) return '';
+//   const [y,m]=targetDate.split('-').map(Number);
+//   return MONTHS[m-1].slice(0,3)+' '+y;
+// }
+// function fundLedger(fundId){
+//   return DB.txns.filter(t=>t.fundId===fundId).sort((a,b)=>b.date.localeCompare(a.date));
+// }
+// function fundCollected(fundId){
+//   let c=0;
+//   DB.txns.forEach(t=>{
+//     if(t.fundId!==fundId) return;
+//     if(t.type==='fund_deposit') c+=t.amount;
+//     if(t.type==='fund_withdraw'||t.type==='fund_spend') c-=t.amount;
+//   });
+//   return c;
+// }
+// function fundAllocatedTotal(walletId){
+//   return DB.funds.filter(f=>f.walletId===walletId).reduce((s,f)=>s+fundCollected(f.id),0);
+// }
+// function walletFreeBalance(walletId){ return walletBalance(walletId)-fundAllocatedTotal(walletId); }
+// function fundProgressPct(f){
+//   if(!f.target) return 0;
+//   return Math.min(100, Math.round(fundCollected(f.id)/f.target*100));
+// }
+// /* saran setoran per gajian: bandingkan progres sekarang vs ekspektasi pacing linear
+//    dari createdAt sampai targetDate — dipakai buat nge-highlight chip hijau (on-track)
+//    atau oranye (ketinggalan), TANPA butuh riwayat rencana tersimpan terpisah. */
+// function fundSuggestion(f){
+//   if(!f.targetDate || f.status!=='active') return null;
+//   const collected=fundCollected(f.id);
+//   const remaining=f.target-collected;
+//   if(remaining<=0) return null;
+//   const todayStr=ymd(new Date());
+//   const targetAnchor=f.targetDate+'-01';
+//   const totalPeriods=Math.max(1, periodsBetweenDates(f.createdAt.slice(0,10), targetAnchor));
+//   const periodsLeft=Math.max(1, periodsBetweenDates(todayStr, targetAnchor));
+//   const elapsed=Math.max(0, Math.min(totalPeriods, periodsBetweenDates(f.createdAt.slice(0,10), todayStr)));
+//   const expected=f.target*(elapsed/totalPeriods);
+//   return {perPeriod:Math.ceil(remaining/periodsLeft), onTrack:collected>=expected, monthLabel:fundTargetLabel(f.targetDate)};
+// }
+// function renderFunds(){
+//   const totalEl=document.getElementById('fund-total'); if(!totalEl) return;
+//   const active=DB.funds.filter(f=>f.status==='active');
+//   const finished=DB.funds.filter(f=>f.status!=='active');
+//   totalEl.textContent=rp(active.reduce((s,f)=>s+fundCollected(f.id),0));
+//   document.getElementById('fund-total-sub').textContent='di '+active.length+' tabungan aktif';
+// 
+//   const list=document.getElementById('fund-list');
+//   if(!DB.funds.length){
+//     list.innerHTML='<div class="card"><div class="empty"><b>Belum ada tabungan tujuan</b>Buat target pertamamu — liburan, ganti HP, atau dana darurat — lewat tombol di atas.</div></div>';
+//     return;
+//   }
+//   const activeHtml=active.map(fundCardHtml).join('') || '<div class="card"><div class="empty"><b>Semua tabungan sudah selesai/diarsipkan</b>Buat tabungan baru lewat tombol di atas.</div></div>';
+//   const finishedHtml= finished.length? `<div class="card" style="margin-top:16px">
+//     <h2 style="font-size:14px">✅ Selesai (${finished.length})</h2>
+//     ${finished.map(f=>{
+//       const c=fundCollected(f.id);
+//       return `<div class="list-item" style="cursor:pointer" onclick="openFundDetailModal('${f.id}')">
+//         <div class="grow"><div class="t1">${esc(f.icon)} ${esc(f.name)}</div><div class="t2">${f.status==='done'?'Sudah dipakai':'Diarsipkan'} · terkumpul ${rp(c)}</div></div>
+//       </div>`;
+//     }).join('')}
+//   </div>` : '';
+//   list.innerHTML=activeHtml+finishedHtml;
+// }
+// function fundCardHtml(f){
+//   const collected=fundCollected(f.id);
+//   const pct=fundProgressPct(f);
+//   const achieved=f.target>0 && collected>=f.target;
+//   const openEnded=!f.targetDate;
+//   const sugg= (!openEnded && !achieved)? fundSuggestion(f) : null;
+//   const chip= sugg? `<div style="margin-top:10px"><span class="tag ${sugg.onTrack?'ok':'warn'}">${sugg.onTrack
+//       ?'Setor '+rp(sugg.perPeriod)+'/gajian, kekejar '+sugg.monthLabel
+//       :'Perlu '+rp(sugg.perPeriod)+'/gajian biar kekejar '+sugg.monthLabel}</span></div>` : '';
+//   const badge= achieved? `<div style="margin-bottom:10px"><span class="tag ok">🎉 Tercapai!</span></div>` : '';
+//   return `<div class="card fund-card ${openEnded?'fund-card--open':''}" onclick="openFundDetailModal('${f.id}')">
+//     ${badge}
+//     <div class="fund-head">
+//       <span class="fund-name"><span class="fund-ic">${esc(f.icon)}</span>${esc(f.name)}</span>
+//       <span class="fund-pct">${pct}%</span>
+//     </div>
+//     <div class="env-usage-bar fund-bar"><i style="width:${pct}%"></i></div>
+//     <div class="fund-nom"><b class="num">${rp(collected)}</b><span>dari ${rp(f.target)}</span></div>
+//     ${chip}
+//     <div class="fund-actions">
+//       ${achieved
+//         ? `<button class="btn ok sm" style="flex:1" onclick="event.stopPropagation();useFund('${f.id}')">Gunakan</button>`
+//         : `<button class="btn p sm" style="flex:1" onclick="event.stopPropagation();openFundTxModal('${f.id}','deposit')">Setor</button>`}
+//       <button class="btn ghost sm" style="flex:1" onclick="event.stopPropagation();openFundDetailModal('${f.id}')">Detail</button>
+//     </div>
+//   </div>`;
+// }
+// function openFundModal(id=''){
+//   document.getElementById('fdf-edit-id').value=id;
+//   const f=id? fundById(id) : {name:'',icon:'🎯',target:'',targetDate:'',walletId:DB.wallets[0]?.id};
+//   document.getElementById('fund-modal-title').firstChild.textContent=id?'Edit Tabungan ':'Tabungan Baru ';
+//   document.getElementById('fdf-del').style.display= id? 'inline-flex':'none';
+//   document.getElementById('fdf-em').value=f.icon;
+//   document.getElementById('fdf-nm').value=f.name;
+//   document.getElementById('fdf-target').value= f.target? Number(f.target).toLocaleString('id-ID') : '';
+//   document.getElementById('fdf-date').value=f.targetDate||'';
+//   document.getElementById('fdf-wallet').innerHTML=DB.wallets.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('');
+//   if(f.walletId) document.getElementById('fdf-wallet').value=f.walletId;
+//   document.getElementById('fund-modal').classList.add('open');
+// }
+// function saveFund(){
+//   const name=document.getElementById('fdf-nm').value.trim();
+//   const icon=document.getElementById('fdf-em').value.trim()||'🎯';
+//   const target=parseAmt(document.getElementById('fdf-target').value);
+//   const targetDate=document.getElementById('fdf-date').value||null;
+//   const walletId=document.getElementById('fdf-wallet').value;
+//   if(!name||!target||!walletId){ toast('Nama, target nominal, dan dompet wajib diisi'); return; }
+//   const id=document.getElementById('fdf-edit-id').value;
+//   if(id){ Object.assign(fundById(id), {name, icon, target, targetDate, walletId}); }
+//   else { DB.funds.push({id:uid(), name, icon, target, targetDate, walletId, status:'active', createdAt:new Date().toISOString()}); }
+//   save(); closeModal('fund-modal'); render();
+//   toast('Tabungan disimpan ✓'+(targetDate&&!id? ' · saran setoran sudah dihitung':''));
+// }
+// function removeFund(id){
+//   DB.funds=DB.funds.filter(f=>f.id!==id);
+//   DB.txns=DB.txns.filter(t=>t.fundId!==id);
+//   save(); render(); toast('Tabungan & riwayatnya dihapus');
+// }
+// async function deleteFund(){
+//   const id=document.getElementById('fdf-edit-id').value; if(!id) return;
+//   const ok=await confirmModal('Hapus tabungan ini? Semua riwayat setor/tarik lewat tabungan ini akan ikut terhapus.', {title:'Hapus Tabungan', okLabel:'Ya, Hapus'});
+//   if(!ok) return;
+//   closeModal('fund-modal'); removeFund(id);
+// }
+// function archiveFund(id){
+//   const f=fundById(id); if(!f) return;
+//   f.status='archived'; save(); closeModal('fund-detail-modal'); render();
+//   toast('Tabungan diarsipkan');
+// }
+// function reactivateFund(id){
+//   const f=fundById(id); if(!f) return;
+//   f.status='active'; save(); closeModal('fund-detail-modal'); render();
+//   toast('Tabungan diaktifkan kembali');
+// }
+// async function useFund(id){
+//   const f=fundById(id); if(!f) return;
+//   const collected=fundCollected(id);
+//   if(collected<=0){ toast('Belum ada saldo untuk dipakai'); return; }
+//   const ok=await confirmModal('Gunakan '+rp(collected)+' dari tabungan "'+f.name+'" sebagai pengeluaran? Tindakan ini tidak bisa dibatalkan.', {title:'Gunakan Tabungan', okLabel:'Ya, Gunakan'});
+//   if(!ok) return;
+//   DB.txns.push({id:uid(), type:'fund_spend', date:new Date().toISOString().slice(0,10),
+//     desc:'Pakai tabungan '+f.name, amount:collected, walletId:f.walletId, fundId:id});
+//   f.status='done';
+//   save(); closeModal('fund-detail-modal'); render();
+//   toast('🎉 Tabungan "'+f.name+'" dipakai!');
+// }
+// let fundTxMode='deposit';
+// function openFundTxModal(fundId, mode){
+//   const f=fundById(fundId); if(!f) return;
+//   fundTxMode=mode;
+//   document.getElementById('ftx-fund-id').value=fundId;
+//   document.getElementById('ftx-amt').value='';
+//   const isDeposit=mode==='deposit';
+//   document.getElementById('ftx-modal-title').textContent=(isDeposit?'Setor ke ':'Tarik dari ')+f.name;
+//   const free=walletFreeBalance(f.walletId);
+//   const collected=fundCollected(f.id);
+//   document.getElementById('ftx-sub').textContent= isDeposit
+//     ? 'Dari dompet: '+(walletById(f.walletId)?.name||'-')+' — saldo bebas '+rp(free)
+//     : 'Kembali ke dompet: '+(walletById(f.walletId)?.name||'-')+' — sudah terkumpul '+rp(collected);
+//   document.getElementById('ftx-cta').textContent= isDeposit? 'Setor Sekarang':'Tarik Dana';
+//   document.getElementById('ftx-microcopy').textContent= isDeposit
+//     ? 'Saldo bebas dompet berkurang, uangmu "dikunci" di tabungan.'
+//     : 'Saldo bebas dompet bertambah lagi, uangmu "dilepas" dari tabungan.';
+//   const quickEl=document.getElementById('ftx-quick');
+//   if(isDeposit){
+//     const sugg=fundSuggestion(f);
+//     const lastDeposit=fundLedger(fundId).find(t=>t.type==='fund_deposit');
+//     const midAmt= sugg? sugg.perPeriod : (lastDeposit? lastDeposit.amount : 250000);
+//     const midLabel= sugg? 'Saran '+rp(sugg.perPeriod) : (lastDeposit? rp(lastDeposit.amount) : 'Rp250rb');
+//     quickEl.innerHTML=[
+//       {amt:100000, label:'Rp100rb'},
+//       {amt:midAmt, label:midLabel, hi:true},
+//       {amt:500000, label:'Rp500rb'},
+//     ].map(q=>`<button type="button" class="filter ${q.hi?'active':''}" style="flex:1" onclick="setFundTxAmt(${q.amt})">${q.label}</button>`).join('');
+//   } else {
+//     quickEl.innerHTML='';
+//   }
+//   updateFundTxPreview();
+//   document.getElementById('fund-tx-modal').classList.add('open');
+// }
+// function setFundTxAmt(amt){
+//   document.getElementById('ftx-amt').value=Number(amt).toLocaleString('id-ID');
+//   updateFundTxPreview();
+// }
+// function updateFundTxPreview(){
+//   const fundId=document.getElementById('ftx-fund-id').value;
+//   const f=fundById(fundId); if(!f) return;
+//   const amt=parseAmt(document.getElementById('ftx-amt').value);
+//   const collected=fundCollected(fundId);
+//   const newCollected= fundTxMode==='deposit'? collected+amt : Math.max(0,collected-amt);
+//   const pct= f.target? Math.min(100,Math.round(newCollected/f.target*100)) : 0;
+//   document.getElementById('ftx-preview-bar').style.width=pct+'%';
+//   document.getElementById('ftx-preview-text').textContent='Setelah '+(fundTxMode==='deposit'?'setor':'tarik')+': '+pct+'% — '+rp(newCollected);
+// }
+// async function saveFundTx(){
+//   const fundId=document.getElementById('ftx-fund-id').value;
+//   const f=fundById(fundId); if(!f) return;
+//   const amt=parseAmt(document.getElementById('ftx-amt').value);
+//   if(!amt||amt<=0){ toast('Nominal wajib diisi'); return; }
+//   if(fundTxMode==='deposit'){
+//     const free=walletFreeBalance(f.walletId);
+//     if(amt>free){ toast('Nominal melebihi saldo bebas dompet ('+rp(free)+')'); return; }
+//     DB.txns.push({id:uid(), type:'fund_deposit', date:new Date().toISOString().slice(0,10),
+//       desc:'Setor ke '+f.name, amount:amt, walletId:f.walletId, fundId});
+//     save(); closeModal('fund-tx-modal'); render();
+//     toast('Setoran tercatat ✓');
+//   } else {
+//     const collected=fundCollected(fundId);
+//     if(amt>collected){ toast('Nominal melebihi saldo tabungan ('+rp(collected)+')'); return; }
+//     const ok=await confirmModal('Yakin ambil '+rp(amt)+' dari tabungan "'+f.name+'"?', {title:'Tarik Dana', okLabel:'Ya, Tarik'});
+//     if(!ok) return;
+//     DB.txns.push({id:uid(), type:'fund_withdraw', date:new Date().toISOString().slice(0,10),
+//       desc:'Tarik dari '+f.name, amount:amt, walletId:f.walletId, fundId});
+//     save(); closeModal('fund-tx-modal'); render();
+//     toast('Dana ditarik ✓');
+//   }
+// }
+// function openFundDetailModal(fundId){
+//   const f=fundById(fundId); if(!f) return;
+//   const collected=fundCollected(fundId);
+//   const pct=fundProgressPct(f);
+//   const achieved=f.target>0 && collected>=f.target;
+//   document.getElementById('fdd-title').textContent=f.icon+' '+f.name;
+//   document.getElementById('fdd-summary').innerHTML=`
+//     <div class="env-usage-bar fund-bar"><i style="width:${pct}%"></i></div>
+//     <div class="fund-nom" style="margin-top:10px"><b class="num">${rp(collected)}</b><span>dari ${rp(f.target)}${f.targetDate?' · target '+fundTargetLabel(f.targetDate):''}</span></div>`;
+//   const depBtn=document.getElementById('fdd-deposit-btn');
+//   depBtn.style.display= f.status==='active'? 'inline-flex':'none';
+//   depBtn.onclick=()=>{ closeModal('fund-detail-modal'); openFundTxModal(fundId,'deposit'); };
+//   const wdBtn=document.getElementById('fdd-withdraw-btn');
+//   wdBtn.style.display= collected>0? 'inline-flex':'none';
+//   wdBtn.onclick=()=>{ closeModal('fund-detail-modal'); openFundTxModal(fundId,'withdraw'); };
+//   document.getElementById('fdd-edit-btn').onclick=()=>{ closeModal('fund-detail-modal'); openFundModal(fundId); };
+//   const useBtn=document.getElementById('fdd-use-btn');
+//   useBtn.style.display= (achieved && f.status==='active')? 'inline-flex':'none';
+//   useBtn.onclick=()=>useFund(fundId);
+//   const archBtn=document.getElementById('fdd-archive-btn');
+//   archBtn.style.display= f.status!=='archived'? 'inline-flex':'none';
+//   archBtn.onclick=()=>archiveFund(fundId);
+//   const reactBtn=document.getElementById('fdd-reactivate-btn');
+//   reactBtn.style.display= f.status!=='active'? 'inline-flex':'none';
+//   reactBtn.onclick=()=>reactivateFund(fundId);
+//   const hist=fundLedger(fundId);
+//   document.getElementById('fdd-history').innerHTML= hist.length
+//     ? hist.map(t=>{
+//         const d=new Date(t.date+'T00:00'), dm=d.getDate()+' '+MONTHS[d.getMonth()].slice(0,3);
+//         const label= t.type==='fund_deposit'?'Setor':t.type==='fund_withdraw'?'Tarik':'Pakai';
+//         const isPlus= t.type==='fund_deposit';
+//         return `<div class="tx-row">
+//           <div class="tx-ico ${isPlus?'in':''}">${t.type==='fund_deposit'?'💰':t.type==='fund_withdraw'?'↩️':'🎯'}</div>
+//           <div class="tx-info"><b>${esc(t.desc||label)}</b><span>${dm}</span></div>
+//           <div class="tx-amt ${isPlus?'in':'out'} num">${isPlus?'+':'−'}${rp(t.amount)}</div>
+//         </div>`;
+//       }).join('')
+//     : '<div class="empty"><b>Belum ada riwayat</b>Mulai setor lewat tombol di atas.</div>';
+//   document.getElementById('fund-detail-modal').classList.add('open');
+// }
 
 /* ================= TRANSAKSI ================= */
 let txFilter='all';
