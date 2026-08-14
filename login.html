@@ -426,6 +426,8 @@
   <div class="field"><label>Emoji</label><input class="input emoji-input" id="evf-em" maxlength="4" placeholder="✉️">
     <div class="hint">Emoji ini muncul sebagai segel di kartu amplop.</div></div>
   <div class="field"><label>Nama Amplop</label><input class="input" id="evf-nm" placeholder="cth: Makan, Transportasi"></div>
+  <div class="field"><label>Nominal Amplop (periode ini)</label><input class="input num" inputmode="numeric" id="evf-nom" placeholder="0" oninput="fmtInput(this)">
+    <div class="hint">Nominal ini khusus periode yang sedang berjalan, sama seperti kolom nominal di halaman Amplop.</div></div>
   <div class="modal-actions">
     <button class="btn-primary" onclick="saveEnv()">Simpan</button>
     <button class="btn-danger" id="evf-del" style="display:none" onclick="deleteEnv()">Hapus</button>

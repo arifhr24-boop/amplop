@@ -832,9 +832,11 @@ function saveMove(){
 function openEnvModal(id=''){
   document.getElementById('ev-edit-id').value=id;
   const e=id? envById(id):{em:'',name:''};
+  const alloc=allocOf(getPeriod(periodOffset).key);
   document.getElementById('env-modal-title').firstChild.textContent=id?'Edit Amplop ':'Amplop Baru ';
   document.getElementById('evf-em').value=e.em||'';
   document.getElementById('evf-nm').value=e.name||'';
+  document.getElementById('evf-nom').value=(id&&alloc[id])? Number(alloc[id]).toLocaleString('id-ID'):'';
   document.getElementById('evf-del').style.display=id?'inline-flex':'none';
   document.getElementById('env-modal').classList.add('open');
 }
@@ -843,7 +845,10 @@ function saveEnv(){
   if(!name){ toast('Nama amplop wajib diisi'); return; }
   const em=document.getElementById('evf-em').value.trim()||'✉️';
   const id=document.getElementById('ev-edit-id').value;
-  if(id){ const e=envById(id); e.name=name; e.em=em; } else DB.envelopes.push({id:uid(), em, name});
+  const targetId=id||uid();
+  if(id){ const e=envById(id); e.name=name; e.em=em; } else DB.envelopes.push({id:targetId, em, name});
+  const alloc=allocOf(getPeriod(periodOffset).key), n=parseAmt(document.getElementById('evf-nom').value);
+  if(n===0) delete alloc[targetId]; else alloc[targetId]=n;
   save(); closeModal('env-modal'); render(); toast('Amplop disimpan ✓');
 }
 function removeEnvelope(id){
