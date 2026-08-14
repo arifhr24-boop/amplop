@@ -128,6 +128,7 @@ function showCycleCustom(){
 const rp=n=>'Rp'+Math.round(n||0).toLocaleString('id-ID');
 const rpS=n=>(n<0?'−':'')+'Rp'+Math.abs(Math.round(n||0)).toLocaleString('id-ID');
 function fmtInput(el){ const v=el.value.replace(/[^\d]/g,''); el.value=v?Number(v).toLocaleString('id-ID'):''; }
+function allocInput(el,id){ fmtInput(el); const a=allocOf(getPeriod(periodOffset).key); const n=parseAmt(el.value); if(n===0) delete a[id]; else a[id]=n; save(); }
 const parseAmt=s=>Number(String(s).replace(/[^\d]/g,''))||0;
 function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
 function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -773,7 +774,7 @@ function renderEnv(){
     return `<div class="alloc-row">
       <div class="name"><i>${esc(e.em)}</i>${esc(e.name)}</div>
       <input inputmode="numeric" class="alloc-input num ${v?'':'zero'}" value="${v}" placeholder="0"
-        oninput="fmtInput(this)" onchange="setAlloc('${e.id}',this.value)">
+        oninput="allocInput(this,'${e.id}')" onchange="setAlloc('${e.id}',this.value)">
       <div class="mini-act">
         <button onclick="openEnvModal('${e.id}')" aria-label="Edit amplop">${ICON_EDIT_SVG}</button>
         <button onclick="quickDeleteEnv('${e.id}')" aria-label="Hapus amplop">${ICON_DELETE_SVG}</button>
