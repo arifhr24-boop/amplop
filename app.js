@@ -717,6 +717,13 @@ function renderTxns(){
   envSelect.value= DB.envelopes.some(e=>e.id===prevEnvVal)? prevEnvVal : '';
   const envFilterId=envSelect.value;
 
+  const walletSelect=document.getElementById('tx-wallet-filter');
+  const prevWalletVal=walletSelect.value;
+  walletSelect.innerHTML='<option value="">Semua Dompet</option>'
+    + DB.wallets.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('');
+  walletSelect.value= DB.wallets.some(w=>w.id===prevWalletVal)? prevWalletVal : '';
+  const walletFilterId=walletSelect.value;
+
   const F=[['all','Semua'],['out','Keluar'],['in','Masuk'],['tf','Transfer']];
   document.getElementById('tx-type-filters').innerHTML=F.map(([v,l])=>
     `<button class="filter ${txFilter===v?'active':''}" onclick="txFilter='${v}';renderTxns()">${l}</button>`).join('');
@@ -729,6 +736,7 @@ function renderTxns(){
   list=list.map((t,i)=>({t,i})).sort((a,b)=>b.t.date.localeCompare(a.t.date) || b.i-a.i).map(x=>x.t);
   if(txFilter!=='all') list=list.filter(t=>t.type===txFilter);
   if(envFilterId) list=list.filter(t=>t.envId===envFilterId);
+  if(walletFilterId) list=list.filter(t=>t.walletId===walletFilterId || t.toWalletId===walletFilterId);
   const q=(document.getElementById('tx-search').value||'').toLowerCase().trim();
   if(q) list=list.filter(t=>
     (t.desc||'').toLowerCase().includes(q) ||
