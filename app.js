@@ -130,7 +130,23 @@ const rpS=n=>(n<0?'−':'')+'Rp'+Math.abs(Math.round(n||0)).toLocaleString('id-I
 function fmtInput(el){ const v=el.value.replace(/[^\d]/g,''); el.value=v?Number(v).toLocaleString('id-ID'):''; }
 function allocInput(el,id){ fmtInput(el); const a=allocOf(getPeriod(periodOffset).key); const n=parseAmt(el.value); if(n===0) delete a[id]; else a[id]=n; save(); }
 const parseAmt=s=>Number(String(s).replace(/[^\d]/g,''))||0;
-function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
+function toast(m, opts={}){
+  const t=document.getElementById('toast'), msg=document.getElementById('toast-msg'), actionBtn=document.getElementById('toast-action');
+  msg.textContent=m;
+  if(opts.action){
+    actionBtn.textContent=opts.action.label;
+    actionBtn.style.display='inline';
+    actionBtn.onclick=()=>{ t.classList.remove('show'); opts.action.onClick(); };
+    t.classList.add('has-action');
+  } else {
+    actionBtn.style.display='none';
+    actionBtn.onclick=null;
+    t.classList.remove('has-action');
+  }
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'), opts.duration||2200);
+}
 function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 const envById=id=>DB.envelopes.find(e=>e.id===id);
 const walletById=id=>DB.wallets.find(w=>w.id===id);
@@ -771,7 +787,29 @@ function renderTxns(){
     return `<div class="tx-day">${esc(label)}</div><div class="card">${rows}</div>`;
   }).join('');
 }
-function delTxn(id){ if(!confirm('Hapus transaksi ini?')) return; DB.txns=DB.txns.filter(t=>t.id!==id); save(); render(); toast('Dihapus'); }
+/* ===== FITUR: UNDO HAPUS TRANSAKSI ===== */
+const pendingTxnDeletes={};
+function softDeleteTxn(id){
+  const idx=DB.txns.findIndex(t=>t.id===id);
+  if(idx<0) return;
+  const txn=DB.txns[idx];
+  DB.txns.splice(idx,1);
+  save(); render();
+  if(pendingTxnDeletes[id]) clearTimeout(pendingTxnDeletes[id].timer);
+  const timer=setTimeout(()=>{ delete pendingTxnDeletes[id]; },5000);
+  pendingTxnDeletes[id]={txn, index:idx, timer};
+  toast('Transaksi dihapus', {duration:5000, action:{label:'Urungkan', onClick:()=>undoDeleteTxn(id)}});
+}
+function undoDeleteTxn(id){
+  const pending=pendingTxnDeletes[id];
+  if(!pending) return;
+  clearTimeout(pending.timer);
+  delete pendingTxnDeletes[id];
+  DB.txns.splice(Math.min(pending.index, DB.txns.length),0,pending.txn);
+  save(); render();
+  toast('Transaksi dikembalikan ✓');
+}
+function delTxn(id){ softDeleteTxn(id); }
 
 /* ================= AMPLOP ================= */
 function renderEnv(){
@@ -1348,9 +1386,9 @@ function saveTxn(){
 }
 function delTxnFromModal(){
   const id=document.getElementById('txf-edit-id').value;
-  if(!id||!confirm('Hapus transaksi ini?')) return;
-  DB.txns=DB.txns.filter(t=>t.id!==id);
-  save(); closeModal('txn-modal'); render(); toast('Transaksi dihapus');
+  if(!id) return;
+  closeModal('txn-modal');
+  softDeleteTxn(id);
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); }));
