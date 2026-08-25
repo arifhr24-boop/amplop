@@ -1261,13 +1261,46 @@ function deleteBill(){
 }
 
 /* ================= TXN MODAL ================= */
+/* ===== FITUR: KEYPAD NUMERIK CUSTOM ===== */
 let txType='out';
-function setTxType(t){
+let txAmtRaw='';
+function renderTxAmt(){
+  document.getElementById('txf-amt').value= txAmtRaw? Number(txAmtRaw).toLocaleString('id-ID') : '';
+}
+function keypadTap(key){
+  navigator.vibrate?.(8);
+  txAmtRaw=(txAmtRaw+key).replace(/^0+(?=\d)/,'');
+  renderTxAmt();
+}
+function keypadBackspace(){
+  navigator.vibrate?.(8);
+  txAmtRaw=txAmtRaw.slice(0,-1);
+  renderTxAmt();
+}
+function keypadClearAll(){
+  navigator.vibrate?.(12);
+  txAmtRaw='';
+  renderTxAmt();
+}
+(function initKeypadBackspace(){
+  const btn=document.getElementById('txn-keypad-back');
+  let timer=null, longPressed=false;
+  const clearTimer=()=>{ if(timer){ clearTimeout(timer); timer=null; } };
+  btn.addEventListener('pointerdown', ()=>{
+    longPressed=false;
+    timer=setTimeout(()=>{ longPressed=true; keypadClearAll(); },500);
+  });
+  btn.addEventListener('pointerup', ()=>{ clearTimer(); if(!longPressed) keypadBackspace(); });
+  btn.addEventListener('pointerleave', clearTimer);
+  btn.addEventListener('pointercancel', clearTimer);
+})();
+function setTxType(t, resetAmt=true){
   txType=t;
   document.querySelectorAll('#tx-seg button').forEach(b=>b.classList.toggle('on', b.dataset.t===t));
   document.getElementById('txf-env-wrap').style.display= t==='out'?'block':'none';
   document.getElementById('txf-to-wrap').style.display= t==='tf'?'block':'none';
   document.getElementById('txf-wallet-label').textContent= t==='tf'?'Dari Dompet':(t==='in'?'Masuk ke Dompet':'Dompet');
+  if(resetAmt){ txAmtRaw=''; renderTxAmt(); }
 }
 function openTxnModal(editId=''){
   const t= editId? DB.txns.find(x=>x.id===editId) : null;
@@ -1277,12 +1310,13 @@ function openTxnModal(editId=''){
 
   document.getElementById('txf-date').value= t? t.date : new Date().toISOString().slice(0,10);
   document.getElementById('txf-desc').value= t? (t.desc||'') : '';
-  document.getElementById('txf-amt').value= t? Number(t.amount).toLocaleString('id-ID') : '';
+  txAmtRaw= t? String(t.amount) : '';
+  renderTxAmt();
   document.getElementById('txf-env').innerHTML=DB.envelopes.map(e=>`<option value="${e.id}">${esc(e.em)} ${esc(e.name)}</option>`).join('');
   const opts=DB.wallets.map(w=>`<option value="${w.id}">${esc(w.name)}</option>`).join('');
   document.getElementById('txf-wallet').innerHTML=opts;
   document.getElementById('txf-to').innerHTML=opts;
-  setTxType(t? t.type : 'out');
+  setTxType(t? t.type : 'out', false);
   if(t){
     if(t.envId) document.getElementById('txf-env').value=t.envId;
     if(t.walletId) document.getElementById('txf-wallet').value=t.walletId;

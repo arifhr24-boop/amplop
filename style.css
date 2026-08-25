@@ -483,6 +483,17 @@ select.input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w
 .input:focus, select.input:focus{border-color:var(--brass); background:#fff; box-shadow:0 0 0 4px rgba(169,126,63,.12)}
 .input::placeholder{color:#B3AE9E}
 .row-2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+
+/* ===== FITUR: KEYPAD NUMERIK CUSTOM ===== */
+.amt-field{margin-bottom:12px}
+.amt-display{text-align:center; font-size:32px; font-weight:700; padding:14px 10px; cursor:default; caret-color:transparent}
+.amt-display:focus{border-color:var(--brass); box-shadow:0 0 0 4px rgba(169,126,63,.12)}
+.keypad{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px}
+.keypad button{min-height:56px; border:1px solid var(--line); border-radius:13px; background:var(--paper);
+  font:inherit; font-size:19px; font-weight:700; color:var(--ink); cursor:pointer;
+  touch-action:manipulation; -webkit-user-select:none; user-select:none}
+.keypad button:active{background:var(--brass-soft); border-color:var(--brass)}
+.keypad-back{color:var(--clay); font-size:18px !important}
 .btn-primary{width:100%; background:var(--ink); color:#F6F3EC; border:none; border-radius:14px; font-weight:800;
   font-size:15px; padding:15px; cursor:pointer; margin-top:6px; box-shadow:0 10px 24px -10px rgba(29,35,56,.5)}
 .btn-primary:hover{transform:translateY(-1px); background:var(--ink-soft)}

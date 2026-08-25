@@ -406,14 +406,29 @@
     <button data-t="in" onclick="setTxType('in')">Masuk</button>
     <button data-t="tf" onclick="setTxType('tf')">Transfer</button>
   </div></div>
-  <div class="row-2">
-    <div class="field"><label>Tanggal</label><input class="input" type="date" id="txf-date"></div>
-    <div class="field"><label>Nominal (Rp)</label><input class="input num" id="txf-amt" inputmode="numeric" placeholder="0" oninput="fmtInput(this)"></div>
-  </div>
   <div class="field"><label>Keterangan</label><input class="input" id="txf-desc" placeholder="cth: Belanja mingguan, Gaji"></div>
   <div class="field" id="txf-env-wrap"><label>Dari Amplop</label><select class="input" id="txf-env"></select></div>
   <div class="field"><label id="txf-wallet-label">Dompet</label><select class="input" id="txf-wallet"></select></div>
   <div class="field" id="txf-to-wrap" style="display:none"><label>Ke Dompet</label><select class="input" id="txf-to"></select></div>
+  <div class="field"><label>Tanggal</label><input class="input" type="date" id="txf-date"></div>
+  <div class="field amt-field">
+    <label>Nominal (Rp)</label>
+    <input class="input num amt-display" id="txf-amt" inputmode="none" readonly placeholder="0">
+  </div>
+  <div class="keypad" id="txn-keypad">
+    <button type="button" onclick="keypadTap('1')">1</button>
+    <button type="button" onclick="keypadTap('2')">2</button>
+    <button type="button" onclick="keypadTap('3')">3</button>
+    <button type="button" onclick="keypadTap('4')">4</button>
+    <button type="button" onclick="keypadTap('5')">5</button>
+    <button type="button" onclick="keypadTap('6')">6</button>
+    <button type="button" onclick="keypadTap('7')">7</button>
+    <button type="button" onclick="keypadTap('8')">8</button>
+    <button type="button" onclick="keypadTap('9')">9</button>
+    <button type="button" onclick="keypadTap('000')">000</button>
+    <button type="button" onclick="keypadTap('0')">0</button>
+    <button type="button" class="keypad-back" id="txn-keypad-back" aria-label="Hapus angka">⌫</button>
+  </div>
   <div class="modal-actions">
     <button class="btn-primary" onclick="saveTxn()">Simpan</button>
     <button class="btn-danger" id="txf-del" style="display:none" onclick="delTxnFromModal()">Hapus</button>
