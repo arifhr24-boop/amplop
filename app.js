@@ -224,10 +224,13 @@ function renderHome(){
     document.getElementById('h-safe').textContent='Aman dipakai '+rp(left/daysLeft)+' /hari';
     document.getElementById('h-days').textContent=daysLeft+' hari tersisa periode ini';
     document.getElementById('h-recap-card').style.display= daysLeft<=3? 'block':'none';
+    document.getElementById('h-daily-card').style.display='block';
+    renderDailySummary(left, daysLeft);
   } else {
     document.getElementById('h-safe').textContent='Sisa amplop '+rp(left);
     document.getElementById('h-days').textContent= period.end<today? 'Periode sudah berlalu':'Periode mendatang';
     document.getElementById('h-recap-card').style.display='none';
+    document.getElementById('h-daily-card').style.display='none';
   }
 
   /* saran amplop musiman (berdasar tanggal sungguhan hari ini, bukan periode yang lagi dilihat) */
@@ -306,6 +309,41 @@ function renderHome(){
       <div class="env-foot"><span>${footLeft}</span><span class="pct">${footRight}</span></div>
     </div>`;
   }).join('');
+}
+/* ===== FITUR: RINGKASAN HARIAN BERANDA ===== */
+function renderDailySummary(left, daysLeft){
+  const todayStr=ymd(new Date());
+  const spentToday=DB.txns.filter(t=>t.type==='out'&&t.date===todayStr).reduce((s,t)=>s+t.amount,0);
+  const hasTxnToday=DB.txns.some(t=>t.date===todayStr);
+  const line1=document.getElementById('h-daily-line1');
+  const line2=document.getElementById('h-daily-line2');
+  const barWrap=document.getElementById('h-daily-bar-wrap');
+  const bar=document.getElementById('h-daily-bar');
+  const cta=document.getElementById('h-daily-cta');
+  if(!hasTxnToday){
+    line1.textContent='Belum ada catatan hari ini. Yuk mulai.';
+    line2.textContent='';
+    barWrap.style.display='none';
+    cta.style.display='inline-flex';
+    return;
+  }
+  cta.style.display='none';
+  barWrap.style.display='block';
+  const jatah=left/daysLeft;
+  line1.innerHTML='Hari ini kamu pakai <b>'+rp(spentToday)+'</b> dari jatah <b>'+rp(jatah)+'</b>.';
+  const ratio= jatah>0? (spentToday/jatah*100) : (spentToday>0?101:0);
+  bar.style.width=Math.min(ratio,100)+'%';
+  bar.className= ratio>100? 'over' : (ratio>=70? 'warn':'ok');
+  const sisa=jatah-spentToday;
+  if(sisa>=0){
+    line2.textContent= daysLeft>1
+      ? 'Sisa '+rp(sisa)+' nambah jatah besok jadi '+rp(left/(daysLeft-1))+'.'
+      : 'Sisa '+rp(sisa)+' hari ini.';
+  } else {
+    line2.textContent= daysLeft>1
+      ? 'Kelebihan '+rp(-sisa)+', jatah besok jadi '+rp(left/(daysLeft-1))+'.'
+      : 'Kelebihan '+rp(-sisa)+' hari ini.';
+  }
 }
 function payBill(id){
   const b=DB.bills.find(x=>x.id===id); if(!b) return;

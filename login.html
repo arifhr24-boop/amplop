@@ -143,6 +143,13 @@
 
   <!-- ============ BERANDA ============ -->
   <section id="page-home" class="page">
+    <div class="card daily-card" id="h-daily-card" style="display:none">
+      <p class="daily-line1" id="h-daily-line1"></p>
+      <div class="env-usage-bar" id="h-daily-bar-wrap"><i id="h-daily-bar" style="width:0%"></i></div>
+      <p class="daily-line2" id="h-daily-line2"></p>
+      <button type="button" class="btn p sm" id="h-daily-cta" style="display:none" onclick="openTxnModal()">+ Catat Transaksi</button>
+    </div>
+
     <div class="hero">
       <div class="eyebrow">Total saldo semua dompet</div>
       <div class="hero-amount-row">

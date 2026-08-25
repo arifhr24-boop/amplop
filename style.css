@@ -361,6 +361,14 @@ input.f:focus, select.f:focus{outline:none; border-color:var(--primary)}
 .env-usage-bar i{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#2B3352,var(--ink))}
 .env-usage-bar i.warn{background:linear-gradient(90deg,var(--brass-bright),var(--brass))}
 .env-usage-bar i.over{background:linear-gradient(90deg,#D08A7C,var(--clay))}
+.env-usage-bar i.ok{background:linear-gradient(90deg,#6FAE8C,var(--sage))}
+
+/* ===== FITUR: RINGKASAN HARIAN BERANDA ===== */
+.daily-card{padding-bottom:16px}
+.daily-line1{font-size:14.5px; font-weight:700; color:var(--ink); margin-bottom:10px}
+.daily-line1 b{font-weight:800}
+.daily-line2{font-size:12.5px; color:var(--muted); margin-top:10px}
+#h-daily-cta{margin-top:12px}
 .neg{color:var(--red)} .pos{color:var(--green)}
 
 .wallet-row{display:flex; justify-content:space-between; align-items:center; padding:15px 0}
